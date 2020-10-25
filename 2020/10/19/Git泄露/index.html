@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="逆时针向" />
+
+
+
+<meta name="description" content="[TOC] 漏洞简介git是一个主流的分布式版本控制系统, 开发人员在开发过程中经常会遗忘 .git 文件夹, 导致攻击者可以通过 .git 文件夹中的信息获取开发人员提交过的所有源码">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Git泄露">
+<meta property="og:url" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/index.html">
+<meta property="og:site_name" content="逆时针向">
+<meta property="og:description" content="[TOC] 漏洞简介git是一个主流的分布式版本控制系统, 开发人员在开发过程中经常会遗忘 .git 文件夹, 导致攻击者可以通过 .git 文件夹中的信息获取开发人员提交过的所有源码">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019134706-8zk73s6-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019134950-ex79ovv-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019140323-ttkfxuk-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019140821-unsw9pq-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019144700-9xvy6hq-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019144813-v2jwzyl-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019145111-5dv7jiw-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019150026-yxqz9rk-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019150422-9c76hry-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019150826-tu4oh2l-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019151220-zcirplj-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019151436-istw0ql-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019153631-gndm4gf-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019153955-bpbhat3-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019155521-ze2ob3u-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160024-gga9bfo-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160105-ne2uaf0-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160227-mo8yob6-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160502-utxs8c7-image.png">
+<meta property="og:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160613-1n0ib6m-image.png">
+<meta property="article:published_time" content="2020-10-19T08:21:45.000Z">
+<meta property="article:modified_time" content="2020-10-19T16:52:58.434Z">
+<meta property="article:author" content="逆时针向">
+<meta property="article:tag" content="git泄漏">
+<meta property="article:tag" content="敏感目录泄漏">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://lynx1.cn/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019134706-8zk73s6-image.png">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="逆时针向" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>Git泄露 | 逆时针向</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.jpg" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">逆时针向</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">路虽远,行则必达; 事虽小,做则必成!</p>
+        
+
+        
+
+
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">随笔</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Lynx-1" title="GitHub"></a>
+                            
+                                <a class="fa Google" target="_blank" rel="noopener" href="https://www.google.com/" title="Google"></a>
+                            
+                                <a class="fa Twitter" target="_blank" rel="noopener" href="https://twitter.com/Lynx9527" title="Twitter"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://github.com/Lynx-1">GitHub</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">逆时针向</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.jpg" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">逆时针向</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">路虽远,行则必达; 事虽小,做则必成!</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">随笔</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Lynx-1" title="GitHub"></a>
+                            
+                                <a class="fa Google" target="_blank" href="https://www.google.com/" title="Google"></a>
+                            
+                                <a class="fa Twitter" target="_blank" href="https://twitter.com/Lynx9527" title="Twitter"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-Git泄露" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/10/19/Git%E6%B3%84%E9%9C%B2/" class="article-date">
+      <time datetime="2020-10-19T08:21:45.000Z" itemprop="datePublished">2020-10-19</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      Git泄露
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/git%E6%B3%84%E6%BC%8F/" rel="tag">git泄漏</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%8F%E6%84%9F%E7%9B%AE%E5%BD%95%E6%B3%84%E6%BC%8F/" rel="tag">敏感目录泄漏</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <p>[TOC]</p>
+<h4 id="漏洞简介"><a href="#漏洞简介" class="headerlink" title="漏洞简介"></a>漏洞简介</h4><p>git是一个主流的分布式版本控制系统, 开发人员在开发过程中经常会遗忘 .git 文件夹, 导致攻击者可以通过 .git 文件夹中的信息获取开发人员提交过的所有源码<a id="more"></a>, 进而可能导致服务器被攻击而沦陷。</p>
+<ol>
+<li>常规 git 泄露 : 既没有任何其他操作, 参赛者可以通过运用现成的工具活自己编写的脚本即可获取网站源码或者flag. 这里推荐一个工具 <a target="_blank" rel="noopener" href="https://github.com/denny0223/scrabble">https://github.com/denny0223/scrabble</a> , 使用方法也很简单</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./scrabble http://example.com</span><br></pre></td></tr></table></figure>
+
+<p>本地搭建Web环境, 如图:</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019134706-8zk73s6-image.png" alt="image.png"></p>
+<p>运行该工具, 即可获取源代码, 拿到flag, 如图 :</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019134950-ex79ovv-image.png" alt="image.png"></p>
+<ol start="2">
+<li>git 回滚</li>
+</ol>
+<p>git 作为一个版本控制工具, 会记录每次提交 (commit) 的修改,所以当题目存在git泄露时, flag (敏感) 文件可能在修改中被删除或者被覆盖了, 这时我们可以利用 git 的”<code>git reset</code>“命令来恢复到以前的版本. 本地自行搭建运行环境, 如图 :</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019140323-ttkfxuk-image.png" alt="image.png"></p>
+<p>我们先利用scrabble工具获取源码, 再通过 “<code>git reset --hard HEAD^</code>“ 命令跳到上一个版本(在git中, 用HEAD表示当前版本), 即可获取到源码, 如图 :</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019140821-unsw9pq-image.png" alt="image.png"></p>
+<p>除了使用 “<code>git reset</code>“, 更简单的方式是通过”<code>git log --stat</code>“ 命令查看每个commit修改了哪些文件, 再用 “<code>git diff head HEAD commit-id</code>“ 比较在当前版本与想看的commit 之间的变化.</p>
+<ol start="3">
+<li>git 分支</li>
+</ol>
+<p>在每次提交时, git 都会自动把他们串成一条时间线, 这条时间线就是一个分支. 而 git 允许使用多个分支, 从而让用户可以把工作从开发主线上分离出来, 以免影响开发主线. 如果没有新建分支, 那么只有一条时间线, 即只有一个分支, git 中默认为 <code>master</code> 分支. 因此,我们要找的 flag 或敏感文件可能不会藏在当前分支中, 这时使用 “<code>git log</code>“ 命令只能找到在当前分支上的修改, 并不能看到我们想要的信息, 因此需要切换分支来找到我们想要的文件.</p>
+<p>现在大多数现成的 git 泄露工具度不支持分支, 如果需要还原其他分支的代码, 往往需要手工进行文件的提取, 这里推荐一个功能较强的 <a target="_blank" rel="noopener" href="https://github.com/WangYihang/GitHacker">GitHacker</a> , GitHacker 的使用十分简单, 只需执行命令 “<code>python GitHacker.py http://example.com/.git/</code>“, 运行后就会在本地 <code>dist</code> 文件夹下生成对应的文件夹, 进入后可以通过 <code>git log --all</code> 或 <code>git branch -v</code> 查看 master 分支的信息, 或者执行 <code>git reflog</code> 命令查看一些 checkout 的记录.</p>
+<ol start="4">
+<li>git泄露的其他利用</li>
+</ol>
+<p>除了查看源码的常见利用方式, 泄露的 git 中也可能有其他有用的信息, 如 .git.config 文件夹中可能含有 access_tooken 信息, 从而可以访问这个用户的其他仓库.</p>
+<h4 id="实例示范"><a href="#实例示范" class="headerlink" title="实例示范"></a>实例示范</h4><p>下面以<a target="_blank" rel="noopener" href="https://www.ctfhub.com/">CTFHUB</a> 技能树 -&gt; Web -&gt; 信息泄露 -&gt; Git泄露 举例</p>
+<ol>
+<li>Log</li>
+</ol>
+<h4 id="考点"><a href="#考点" class="headerlink" title="考点"></a>考点</h4><blockquote>
+<ul>
+<li>git 泄露</li>
+<li>查看git历史记录  git log</li>
+<li>切换版本  git reset</li>
+<li>对比两次提交  git diff</li>
+</ul>
+</blockquote>
+<h4 id="解题思路"><a href="#解题思路" class="headerlink" title="解题思路"></a>解题思路</h4><p>进入环境 <code>http://challenge-4259514307e9bd1e.sandbox.ctfhub.com:10080/</code>, 可看到如图界面</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019144700-9xvy6hq-image.png" alt="image.png"></p>
+<p>访问 .git 后返回 <em>403</em></p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019144813-v2jwzyl-image.png" alt="image.png"></p>
+<p>再试探着访问 .git/config, 发现有文件返回, 可判断存在 git 泄露..</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019145111-5dv7jiw-image.png" alt="image.png"></p>
+<p>说明: CTF线上比赛往往会有重定向一类问题, 例如, 只要访问 .git, 便会返回 403, 此时试探着访问 .git/config, 如果有文件内容返回, 就说明存在 git 泄露, 反之, 一般不存在.</p>
+<p>使用 GitHacker 工具  clone 目标源代码到本地</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python GitHack.py http://challenge<span class="number">-4259514307e9</span>bd1e.sandbox.ctfhub.com:<span class="number">10080</span>/.git/</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019150026-yxqz9rk-image.png" alt="image.png"></p>
+<p>显示 clone 成功</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019150422-9c76hry-image.png" alt="image.png"></p>
+<p>使用 <code>git log --all</code> 查看commit 历史记录</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019150826-tu4oh2l-image.png" alt="image.png"></p>
+<p>当前所处的版本为 <code>remove flag</code>, flag 在 <code>add flag</code> 这次提交中</p>
+<h5 id="解法一"><a href="#解法一" class="headerlink" title="解法一"></a>解法一</h5><p>直接与 add flag (c8c07) 这次进行比对</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git diff c8c07</span><br><span class="line"><span class="section"># 或</span></span><br><span class="line">git diff HEAD^</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019151220-zcirplj-image.png" alt="image.png"></p>
+<p>可得 flag</p>
+<h5 id="解法二"><a href="#解法二" class="headerlink" title="解法二"></a>解法二</h5><p>直接切换到 add flag (c8c07) 这个版本</p>
+<figure class="highlight markdown"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">git reset --head c8c07</span><br><span class="line"><span class="section">#或</span></span><br><span class="line">git reset --hard HEAD^</span><br></pre></td></tr></table></figure>
+
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019151436-istw0ql-image.png" alt="image.png"></p>
+<p>也可得flag</p>
+<ol start="2">
+<li>Index</li>
+</ol>
+<h4 id="考点-1"><a href="#考点-1" class="headerlink" title="考点"></a>考点</h4><blockquote>
+<ul>
+<li>git泄露</li>
+</ul>
+</blockquote>
+<h4 id="解题思路-1"><a href="#解题思路-1" class="headerlink" title="解题思路"></a>解题思路</h4><p>访问 .git 返回 403, 访问 .git/config 后有文件返回, 说明 git 泄露</p>
+<p>使用 GitHacker 工具  clone 目标源代码到本地</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019153631-gndm4gf-image.png" alt="image.png"></p>
+<p>对应文件夹下直接获得 flag</p>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019153955-bpbhat3-image.png" alt="image.png"></p>
+<ol start="3">
+<li>Stash</li>
+</ol>
+<h4 id="考点-2"><a href="#考点-2" class="headerlink" title="考点"></a>考点</h4><blockquote>
+<ul>
+<li>git 泄露 <code>.git/refs/stash</code></li>
+<li>stash 用于保存 git 工作状态到 git 栈，在需要的时候再恢复</li>
+</ul>
+</blockquote>
+<h4 id="解题思路-2"><a href="#解题思路-2" class="headerlink" title="解题思路"></a>解题思路</h4><ul>
+<li>访问敏感目录 .git, 返回 403, 访问 .git/config 返回文件</li>
+<li>利用 GitHacker 工具 clone 目标源代码到本地</li>
+</ul>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019155521-ze2ob3u-image.png" alt="image.png"></p>
+<h4 id="解法一-1"><a href="#解法一-1" class="headerlink" title="解法一"></a>解法一</h4><ul>
+<li>执行 git log –all 后发现有stash</li>
+</ul>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160024-gga9bfo-image.png" alt="image.png"></p>
+<ul>
+<li>执行 git stash list 对其进行验证(确认存在)</li>
+</ul>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160105-ne2uaf0-image.png" alt="image.png"></p>
+<ul>
+<li>执行 git stash pop 发现从 git 栈中弹出来一个文件，这个文件的内容就是 flag</li>
+</ul>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160227-mo8yob6-image.png" alt="image.png"></p>
+<h4 id="解法二-1"><a href="#解法二-1" class="headerlink" title="解法二"></a>解法二</h4><p>如果你使用的 GitHacker 工具执行完 git stash show 之后没有显示 stash 记录，那么不妨来尝试这个方法</p>
+<ul>
+<li>查看 <code>.git/refs/stash</code> 找到 <code>stash</code> 对应的 <code>hash</code></li>
+</ul>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160502-utxs8c7-image.png" alt="image.png"></p>
+<ul>
+<li><code>git diff 82897f</code> 即可看到 flag</li>
+</ul>
+<p><img src="/2020/10/19/Git%E6%B3%84%E9%9C%B2/20201019160613-1n0ib6m-image.png" alt="image.png"></p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2020/10/25/Bilibili-CTF1024-%E5%B9%B2%E6%9D%AF/">
+                    Bilibili CTF1024 干杯
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/">
+                    XSS测试备忘录
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%BC%8F%E6%B4%9E%E7%AE%80%E4%BB%8B"><span class="toc-number">1.</span> <span class="toc-text">漏洞简介</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%AE%9E%E4%BE%8B%E7%A4%BA%E8%8C%83"><span class="toc-number">2.</span> <span class="toc-text">实例示范</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E7%82%B9"><span class="toc-number">3.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF"><span class="toc-number">4.</span> <span class="toc-text">解题思路</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%80"><span class="toc-number">4.1.</span> <span class="toc-text">解法一</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%BA%8C"><span class="toc-number">4.2.</span> <span class="toc-text">解法二</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E7%82%B9-1"><span class="toc-number">5.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF-1"><span class="toc-number">6.</span> <span class="toc-text">解题思路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%80%83%E7%82%B9-2"><span class="toc-number">7.</span> <span class="toc-text">考点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E9%A2%98%E6%80%9D%E8%B7%AF-2"><span class="toc-number">8.</span> <span class="toc-text">解题思路</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%B8%80-1"><span class="toc-number">9.</span> <span class="toc-text">解法一</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A7%A3%E6%B3%95%E4%BA%8C-1"><span class="toc-number">10.</span> <span class="toc-text">解法二</span></a></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2020/10/25/Bilibili-CTF1024-%E5%B9%B2%E6%9D%AF/" title="上一篇: Bilibili CTF1024 干杯">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/" title="下一篇: XSS测试备忘录">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/25/Bilibili-CTF1024-%E5%B9%B2%E6%9D%AF/">Bilibili CTF1024 干杯</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/19/Git%E6%B3%84%E9%9C%B2/">Git泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/">XSS测试备忘录</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/">sqli-labs-通关writeup 1-10</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/11/26/CTF%E5%85%A5%E9%97%A8%E6%8C%87%E5%8C%97/">CTF入门指北</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2020 逆时针向
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+            
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
